@@ -1,0 +1,12 @@
+{
+  "conditionIds": ["DAC2", "B613", "2BC3", "23E8", "DFF0", "AE5A", "6B7D", "2B06"],
+  "unverifiedUnitIds": ["523B", "D83E", "2317"],
+  "verifiedAnimaIds": ["5CFF", "5B76", "B4D8"],
+  "verifiedDecimalIds": ["91A6", "5CFF", "5B76", "B4D8"],
+  "verifiedPercentIds": ["164A", "9158", "E5E7", "823B", "9D39", "9BF2", "8D1A", "AD6B"],
+  "verifiedGradeValues": {
+    "3961": {"13": "AA"},
+    "9AD2": {"13": "AA"},
+    "24E8": {"8": "B+"}
+  }
+}

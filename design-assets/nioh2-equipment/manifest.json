@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-09-21",
+  "licenseStatus": "redistribution-not-confirmed",
+  "modified": false,
+  "assets": [
+    {
+      "id": "head",
+      "label": "头部",
+      "file": "head.png",
+      "component": "Game Icons/Nioh 2/Armor/Head",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/1/1d/Head-icon-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Demon_Horde_Armor",
+      "width": 50,
+      "height": 50
+    },
+    {
+      "id": "body",
+      "label": "胸部",
+      "file": "body.png",
+      "component": "Game Icons/Nioh 2/Armor/Body",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/b/be/Body-icon-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Demon_Horde_Armor",
+      "width": 50,
+      "height": 50
+    },
+    {
+      "id": "arms",
+      "label": "臂部",
+      "file": "arms.png",
+      "component": "Game Icons/Nioh 2/Armor/Arms",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/8/8d/Hand-icon-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Demon_Horde_Armor",
+      "width": 54,
+      "height": 54
+    },
+    {
+      "id": "legs",
+      "label": "腿部",
+      "file": "legs.png",
+      "component": "Game Icons/Nioh 2/Armor/Legs",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/5/5a/Waist-icon-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Demon_Horde_Armor",
+      "width": 50,
+      "height": 50
+    },
+    {
+      "id": "feet",
+      "label": "足部",
+      "file": "feet.png",
+      "component": "Game Icons/Nioh 2/Armor/Feet",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/5/59/Foot-icon-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Demon_Horde_Armor",
+      "width": 50,
+      "height": 50
+    },
+    {
+      "id": "yasakani-magatama",
+      "label": "八尺琼勾玉",
+      "file": "yasakani-magatama.png",
+      "component": "Game Icons/Nioh 2/Items/YasakaniMagatama",
+      "semantics": "item",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/a/a3/Yasakani_magatama_accessories_nioh_2_wiki_guide_150px.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Yasakani_Magatama",
+      "width": 150,
+      "height": 150
+    },
+    {
+      "id": "omamori",
+      "label": "护身符",
+      "file": "omamori.png",
+      "component": "Game Icons/Nioh 2/Items/Omamori",
+      "semantics": "item",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/7/7e/Omamori-accessory-nioh-2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Omamori",
+      "width": 150,
+      "height": 150
+    },
+    {
+      "id": "demon-parade-scroll",
+      "label": "百鬼绘卷",
+      "file": "demon-parade-scroll.png",
+      "component": "Game Icons/Nioh 2/Items/DemonParadeScroll",
+      "semantics": "category",
+      "url": "https://static0.fextralifeimages.com/file/nioh2/3/32/Demon_parade_scroll-nioh2-wiki-guide.png",
+      "sourcePage": "https://nioh2.wiki.fextralife.com/Scrolls",
+      "width": 150,
+      "height": 150
+    }
+  ]
+}

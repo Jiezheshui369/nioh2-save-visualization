@@ -1,0 +1,35 @@
+{
+  "name": "仁王存档伴侣",
+  "short_name": "仁王伴侣",
+  "description": "只读查看《仁王2》角色档案、装备构筑、随身物品与百鬼绘卷。",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080909",
+  "theme_color": "#080909",
+  "lang": "zh-CN",
+  "categories": ["games", "utilities"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

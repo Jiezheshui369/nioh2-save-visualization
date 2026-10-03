@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "Nioh 2 archive_19 official zh-CN effect templates, assembled for community flattened names",
+  "effects": {
+    "0F83": "魂核掉落率（妖怪化时）",
+    "193C": "挥茅精力伤害",
+    "218D": "流影斩伤害",
+    "328F": "以此妖怪技命中可赋予防御力增加",
+    "55C6": "退击伤害",
+    "8EFF": "不消耗招猫铃",
+    "A17B": "以此妖怪技命中可赋予攻击力增加",
+    "C474": "以此妖怪技命中可赋予精力恢复速度上升",
+    "C7F2": "以瞬间防御反弹远距离攻击",
+    "EA77": "装备品掉落率（妖怪化时）"
+  }
+}

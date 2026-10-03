@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "0.9.5-research",
+  "parserVersion": "0.9.5",
+  "game": "Nioh 2 - The Complete Edition",
+  "platform": "Steam/Windows",
+  "snapshotId": "synthetic-demo",
+  "researchLabel": "合成演示数据",
+  "sourceLastWriteLocal": "2026-01-01T00:00:00+00:00",
+  "safety": {
+    "sourceOpenedReadOnly": true,
+    "parsedFromCopy": true,
+    "originalMainSaveSha256": "REDACTED",
+    "snapshotCopySha256": "REDACTED",
+    "originalHashUnchangedAfterProcessing": true
+  },
+  "privacy": { "redactedForSharing": true },
+  "character": {
+    "level": 120,
+    "amrita": 1234567,
+    "gold": 7654321,
+    "attributes": {
+      "constitution": 30,
+      "heart": 20,
+      "courage": 30,
+      "stamina": 25,
+      "strength": 15,
+      "skill": 20,
+      "dexterity": 25,
+      "magic": 35
+    },
+    "proficiency": {
+      "sword": 250000,
+      "dualSwords": 180000,
+      "spear": 90000,
+      "axe": 50000,
+      "kusarigama": 70000,
+      "odachi": 120000,
+      "tonfa": 60000,
+      "hatchets": 80000,
+      "switchglaive": 220000,
+      "splitstaff": 210000,
+      "fists": 200000,
+      "ninjutsu": 300000,
+      "onmyo": 320000
+    }
+  },
+  "currentLoadoutName": "存档记录的当前装备",
+  "savedEquipmentPresetName": "演示构筑",
+  "emptyLoadoutSlots": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "loadoutSource": "inventory-equipped-marker",
+  "currentLoadout": [
+    {
+      "recordIndex": 0,
+      "equipIndex": 0,
+      "id": "FA97",
+      "name": "Tsuchigumo Clawed Fists",
+      "nameZh": "土蜘蛛众手甲钩",
+      "type": "Weapon",
+      "level": 120,
+      "plus": 5,
+      "rarity": "Divine",
+      "setOrGrace": "Grace of Tsukuyomi",
+      "effects": ["Imbue Corruption", "Melee Ki Damage", "Grace of Tsukuyomi"],
+      "effectsZh": ["赋予妖属性", "近距离攻击精力伤害", "月读的恩宠"],
+      "slot": "melee1"
+    }
+  ],
+  "equipmentInventory": [
+    {
+      "recordIndex": 0,
+      "equipIndex": 0,
+      "id": "FA97",
+      "name": "Tsuchigumo Clawed Fists",
+      "nameZh": "土蜘蛛众手甲钩",
+      "type": "Weapon",
+      "level": 120,
+      "plus": 5,
+      "rarity": "Divine",
+      "setOrGrace": "Grace of Tsukuyomi",
+      "effects": ["Imbue Corruption", "Melee Ki Damage", "Grace of Tsukuyomi"],
+      "effectsZh": ["赋予妖属性", "近距离攻击精力伤害", "月读的恩宠"]
+    },
+    {
+      "recordIndex": 1,
+      "equipIndex": 1,
+      "id": "4530",
+      "name": "Yasakani Magatama",
+      "nameZh": "八尺琼勾玉",
+      "type": "Accessory",
+      "level": 120,
+      "plus": 3,
+      "rarity": "Divine",
+      "setOrGrace": "Grace of Oyamatsumi",
+      "effects": ["Set Bonus Requirements Reduced", "Grace of Oyamatsumi"],
+      "effectsZh": ["套装效果需求数－1", "大山津见的恩宠"]
+    }
+  ],
+  "inventoryItems": [
+    { "recordIndex": 0, "id": "342F", "name": "Guardian Spirit Talisman", "nameZh": "守护灵呼唤符", "type": "Usable Items", "quantity": 8 },
+    { "recordIndex": 1, "id": "BCCE", "name": "Quality Lacquer", "nameZh": "良质漆", "type": "Smithing Materials", "quantity": 24 }
+  ],
+  "scrolls": [
+    {
+      "recordIndex": 0,
+      "id": "DEA7",
+      "name": "Scroll of the Demon",
+      "nameZh": "百鬼夜行绘卷·妖",
+      "level": 120,
+      "rarity": "Divine",
+      "attemptsRemaining": 3,
+      "effects": ["Ultimate Magic"],
+      "effectsZh": ["咒之深奥"]
+    }
+  ],
+  "inventorySummary": {
+    "equipmentRecords": 2,
+    "equipmentUnknownIds": 0,
+    "equipmentByType": { "Weapon": 1, "Accessory": 1 },
+    "stackedItemRecords": 2,
+    "scrollRecordsDetected": 1
+  },
+  "limitations": [
+    "这是合成演示数据，不对应任何玩家或真实存档。",
+    "任务、技能树、收集品、武家和奈落狱进度仍在研究中。"
+  ]
+}

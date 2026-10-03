@@ -1,0 +1,2 @@
+# Windows TLS sync runtime; install into the chosen build environment.
+cryptography==50.0.1

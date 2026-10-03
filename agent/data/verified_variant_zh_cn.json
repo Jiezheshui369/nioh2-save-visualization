@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": [
+    "https://www.gamersky.com/handbook/202004/1281891_3.shtml",
+    "https://www.niohwiki.com/mediawiki/index.php?title=二代武器资料",
+    "Nioh 2 community item IDs and English variant names",
+    "Nioh 2 archive_19 official Simplified Chinese tea-set name and color suffix"
+  ],
+  "items": {
+    "0910": "鬼腕甲",
+    "5F5D": "勾玉（白）",
+    "0677": "濑户瓢箪茶入（黄）",
+    "8542": "扇子（黑）",
+    "864C": "发梳",
+    "A7F2": "扇子（白）"
+  }
+}
