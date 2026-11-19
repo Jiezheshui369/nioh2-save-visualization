@@ -123,16 +123,16 @@ class AgentTests(unittest.TestCase):
     def test_steam_cloud_status_matches_local_metadata_without_exposing_paths_or_hashes(self):
         with tempfile.TemporaryDirectory() as root:
             base = Path(root)
-            source = base / "KoeiTecmo" / "NIOH2" / "Savedata" / "1100771843" / "SAVEDATA00"
+            source = base / "KoeiTecmo" / "NIOH2" / "Savedata" / "1000000001" / "SAVEDATA00"
             source.mkdir(parents=True)
             save = source / "SAVEDATA.BIN"
             save.write_bytes(b"cloud-test")
             timestamp = int(save.stat().st_mtime)
-            cache = base / "Steam" / "userdata" / "1100771843" / "1325200" / "remotecache.vdf"
+            cache = base / "Steam" / "userdata" / "1000000001" / "1325200" / "remotecache.vdf"
             cache.parent.mkdir(parents=True)
             private_sha = steam_sha1(save).lower()
             cache.write_text(
-                f'''"1325200"\n{{\n\t"KoeiTecmo/NIOH2/Savedata/1100771843/SAVEDATA00/SAVEDATA.BIN"\n\t{{\n\t\t"size" "10"\n\t\t"localtime" "{timestamp}"\n\t\t"remotetime" "{timestamp}"\n\t\t"sha" "{private_sha}"\n\t}}\n}}''',
+                f'''"1325200"\n{{\n\t"KoeiTecmo/NIOH2/Savedata/1000000001/SAVEDATA00/SAVEDATA.BIN"\n\t{{\n\t\t"size" "10"\n\t\t"localtime" "{timestamp}"\n\t\t"remotetime" "{timestamp}"\n\t\t"sha" "{private_sha}"\n\t}}\n}}''',
                 encoding="utf-8",
             )
             status = steam_cloud_status(source, [base / "Steam"])
@@ -146,22 +146,22 @@ class AgentTests(unittest.TestCase):
     def test_steam_cloud_status_detects_local_save_newer_than_metadata(self):
         with tempfile.TemporaryDirectory() as root:
             base = Path(root)
-            source = base / "1100771843" / "SAVEDATA00"
+            source = base / "1000000001" / "SAVEDATA00"
             source.mkdir(parents=True)
             save = source / "SAVEDATA.BIN"
             save.write_bytes(b"cloud-test")
-            cache = base / "Steam" / "userdata" / "1100771843" / "1325200" / "remotecache.vdf"
+            cache = base / "Steam" / "userdata" / "1000000001" / "1325200" / "remotecache.vdf"
             cache.parent.mkdir(parents=True)
             old = int(save.stat().st_mtime) - 60
             cache.write_text(
-                f'''"1325200"\n{{\n\t"KoeiTecmo/NIOH2/Savedata/1100771843/SAVEDATA00/SAVEDATA.BIN"\n\t{{\n\t\t"size" "10"\n\t\t"localtime" "{old}"\n\t\t"remotetime" "{old}"\n\t}}\n}}''',
+                f'''"1325200"\n{{\n\t"KoeiTecmo/NIOH2/Savedata/1000000001/SAVEDATA00/SAVEDATA.BIN"\n\t{{\n\t\t"size" "10"\n\t\t"localtime" "{old}"\n\t\t"remotetime" "{old}"\n\t}}\n}}''',
                 encoding="utf-8",
             )
             self.assertEqual("local-newer", steam_cloud_status(source, [base / "Steam"])["state"])
 
     def test_source_summary_hides_full_path_and_lists_slots(self):
         with tempfile.TemporaryDirectory() as root:
-            source = Path(root) / "1100771843"
+            source = Path(root) / "1000000001"
             slot = source / "SAVEDATA00"
             slot.mkdir(parents=True)
             (slot / "SAVEDATA.BIN").write_bytes(b"test")
@@ -182,7 +182,7 @@ class AgentTests(unittest.TestCase):
 
     def test_discovers_multiple_character_slots_without_exposing_paths(self):
         with tempfile.TemporaryDirectory() as root:
-            account = Path(root) / "1100771843"
+            account = Path(root) / "1000000001"
             for name in ("SAVEDATA00", "SAVEDATA01"):
                 slot = account / name
                 slot.mkdir(parents=True)
@@ -279,6 +279,11 @@ class AgentTests(unittest.TestCase):
             backup = snapshot_root / "BACKUP.BIN"
             current_data = bytearray(MIN_SAVE_SIZE)
             backup_data = bytearray(MIN_SAVE_SIZE)
+            for fixture in (current_data, backup_data):
+                fixture[:8] = b'NIOHUSR\0'
+                fixture[8:12] = (0x21030200).to_bytes(4, 'little')
+                fixture[0x14:0x18] = (0x148).to_bytes(4, 'little')
+                fixture[0x18:0x1C] = (len(fixture)-0x148).to_bytes(4, 'little')
             current_data[0x7B8D8] = 2
             backup_data[0x7B8D8] = 1
             current.write_bytes(current_data)
@@ -305,8 +310,13 @@ class AgentTests(unittest.TestCase):
             copies.mkdir()
             current = copies / "SAVEDATA.BIN"
             backup = copies / "BACKUP.BIN"
-            current.write_bytes(bytes(MIN_SAVE_SIZE))
-            backup.write_bytes(bytes(MIN_SAVE_SIZE))
+            fixture = bytearray(MIN_SAVE_SIZE)
+            fixture[:8] = b'NIOHUSR\0'
+            fixture[8:12] = (0x21030200).to_bytes(4, 'little')
+            fixture[0x14:0x18] = (0x148).to_bytes(4, 'little')
+            fixture[0x18:0x1C] = (len(fixture)-0x148).to_bytes(4, 'little')
+            current.write_bytes(fixture)
+            backup.write_bytes(fixture)
             result = parse_and_store(
                 current, backup, copies, base / "store", items, effects, sha256(current), None,
                 "2026-09-18T16:44:02+00:00", "2026-09-18T16:40:00+00:00",

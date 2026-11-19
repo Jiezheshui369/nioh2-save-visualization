@@ -1,4 +1,9 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { desktopContextHeaders, sameDesktopContext } from './desktopDataContext';
+import type { DesktopDataContext } from './desktopDataContext';
+import { saveDesktopSnapshot, loadDesktopSnapshotIndex } from './desktopSnapshotCache';
+import { isSupportedSnapshot as isSupportedRemoteSnapshot } from './snapshotValidation';
+import { ExperimentalScrollPanel } from "./ExperimentalScrollPanel";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { isNativeApp } from "./runtime";
 import { effectText } from "./effectValues";
 import { shareOrDownloadFile, shareText } from "./fileSharing";
@@ -64,9 +69,14 @@ import {
 import type { AgentStatus, AttributeKey, DeviceArchiveInfo, EquipmentItem, LoadoutItem, SaveSnapshot, SaveSourceOption, SnapshotSummary, ViewName } from "./types";
 import packageJson from "../package.json";
 import { CharacterStatusPanel } from "./CharacterStatusPanel";
-import { DesktopSyncPanel, MobileReceivePanel } from "./SyncPanel";
+import { MobileReceivePanel } from "./SyncPanel";
+import { DesktopApp } from './DesktopApp';
+import type { DesktopReadState } from './DesktopApp';
 import { DesktopImport } from "./DesktopImport";
 import { MobileApp } from "./MobileApp";
+import { MobileLoadingScreen } from "./MobileMore";
+import { privateMobilePresentation, privateLightAllPreview } from './privateVisualAssets';
+import { mobileSetLabel } from './mobileSetPresentation';
 import "./desktop.css";
 
 const NAV: Array<{ id: ViewName; label: string; icon: typeof Archive }> = [
@@ -156,7 +166,7 @@ function summarizeSets(items: LoadoutItem[]) {
 function LoadingScreen() {
   return (
     <main className="loading-shell" aria-live="polite">
-      <div className="loading-mark nioh-wordmark">Nioh</div>
+      <div className="loading-mark nioh-wordmark">存档资产</div>
       <p>正在展开角色卷轴…</p>
     </main>
   );
@@ -166,18 +176,18 @@ export function EmptyLibrary({ error, onImport, importing = false }: { error?: s
   return (
     <main className="empty-library">
       <section className="empty-library-card">
-        <div className="empty-library-mark nioh-wordmark" aria-hidden="true">Nioh</div>
+        <div className="empty-library-mark nioh-wordmark" aria-hidden="true">存档资产</div>
         <div className="empty-library-copy">
           <p className="eyebrow">随身档案 · 我的角色资产</p>
           <h1>这里等待的是<br /><em>你的存档</em></h1>
-          <p>本应用不会用演示人物冒充你的资料。在电脑选择或拖入游戏存档完成分析，再到“手机连接”让安卓 App 扫码同步。下方文件导入仅用于恢复已有档案备份。</p>
+          <p>本应用不会用演示人物冒充你的资料。在电脑选择游戏存档并分析独立副本，保存后可离线查看。跨网功能以账号与连接状态为准；已有档案包可用于备份恢复。</p>
           {error ? <div className="empty-library-error" role="alert"><CircleAlert aria-hidden="true" /><span>{error}</span></div> : null}
           <button type="button" disabled={importing} onClick={onImport}><FileUp aria-hidden="true" />{importing ? "正在保存档案…" : "导入我的档案包"}</button>
         </div>
         <ol aria-label="导入步骤">
           <li><span>01</span><strong>电脑读取</strong><small>只解析独立副本</small></li>
           <li><span>02</span><strong>电脑发布</strong><small>只发送分析结果</small></li>
-          <li><span>03</span><strong>手机扫码同步</strong><small>无需搬运 JSON</small></li>
+          <li><span>03</span><strong>确认账号连接</strong><small>无需搬运 JSON</small></li>
           <li><span>04</span><strong>离线查看</strong><small>资料只留在设备上</small></li>
         </ol>
       </section>
@@ -259,8 +269,10 @@ export function Overview({ snapshot, archiveInfo, onOpenBuilds, onImport }: { sn
 }
 
 export function BuildsView({ snapshot }: { snapshot: SaveSnapshot }) {
+  const mobileLight = privateLightAllPreview && privateMobilePresentation();
+  const syntheticCurrent = snapshot.snapshotId.startsWith('synthetic-');
   const [builds, setBuilds] = useState<SavedBuild[]>([]);
-  const [title, setTitle] = useState(snapshot.currentLoadoutName ?? snapshot.savedEquipmentPresetName ?? "我的仁王配装");
+  const [title, setTitle] = useState(mobileLight && syntheticCurrent ? '' : snapshot.currentLoadoutName ?? snapshot.savedEquipmentPresetName ?? "我的仁王配装");
   const [note, setNote] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "failed">("idle");
@@ -276,10 +288,14 @@ export function BuildsView({ snapshot }: { snapshot: SaveSnapshot }) {
   const cardState = cardAction.state;
   const currentSets = useMemo(() => summarizeSets(snapshot.currentLoadout), [snapshot.currentLoadout]);
   const selectedSets = useMemo(() => selected ? summarizeSets(selected.equipment) : [], [selected]);
+  const syntheticSelected = selected?.sourceSnapshotId.startsWith('synthetic-') ?? false;
+  const shownCurrentSets = mobileLight ? (syntheticCurrent ? [] : currentSets.filter(([name]) => mobileSetLabel(name))) : currentSets;
+  const shownSelectedSets = mobileLight ? (syntheticSelected ? [] : selectedSets.filter(([name]) => mobileSetLabel(name))) : selectedSets;
+  const shownSetName = (name: string) => mobileLight ? mobileSetLabel(name) : localizeSetOrGrace(name);
 
   useEffect(() => {
-    setTitle(snapshot.currentLoadoutName ?? snapshot.savedEquipmentPresetName ?? "我的仁王配装");
-  }, [snapshot.currentLoadoutName, snapshot.savedEquipmentPresetName, snapshot.snapshotId]);
+    setTitle(mobileLight && syntheticCurrent ? '' : snapshot.currentLoadoutName ?? snapshot.savedEquipmentPresetName ?? "我的仁王配装");
+  }, [snapshot.currentLoadoutName, snapshot.savedEquipmentPresetName, snapshot.snapshotId, mobileLight, syntheticCurrent]);
 
   useEffect(() => {
     let active = true;
@@ -343,12 +359,12 @@ export function BuildsView({ snapshot }: { snapshot: SaveSnapshot }) {
       <section className="build-capture">
         <div className="build-capture-summary">
           <span>当前可收藏</span>
-          <strong>{snapshot.currentLoadoutName ?? "存档记录的当前装备"}</strong>
+          <strong>{mobileLight ? '当前配装' : snapshot.currentLoadoutName ?? "存档记录的当前装备"}</strong>
           <p>等级 {snapshot.character.level} · {snapshot.currentLoadout.length} 个已装备槽位</p>
-          <div>{currentSets.slice(0, 4).map(([name, count]) => <i key={name}>{localizeSetOrGrace(name)} {count}</i>)}</div>
+          {shownCurrentSets.length ? <div>{shownCurrentSets.slice(0, 4).map(([name, count]) => <i key={name}>{shownSetName(name)} {count}</i>)}</div> : null}
         </div>
         <div className="build-capture-form">
-          <label><span>配装名称</span><input aria-label="配装名称" maxLength={40} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="例如：深层大山阴阳" /></label>
+          <label><span>配装名称</span><input aria-label="配装名称" maxLength={40} value={title} onChange={(event) => setTitle(event.target.value)} placeholder={mobileLight ? '输入配装名称' : '例如：深层大山阴阳'} /></label>
           <label><span>备注</span><textarea aria-label="配装备注" maxLength={240} value={note} onChange={(event) => setNote(event.target.value)} placeholder="用途、打法、需要注意的词条……" /></label>
           <button type="button" disabled={writing || !loaded} onClick={() => void handleSave()}><BookmarkPlus aria-hidden="true" />{writing ? "正在保存…" : saveState === "saved" ? "已收藏到配装册" : saveState === "failed" ? "保存失败" : "收藏当前配装"}</button>
         </div>
@@ -372,11 +388,12 @@ export function BuildsView({ snapshot }: { snapshot: SaveSnapshot }) {
           {selected ? (
             <article className="saved-build-detail">
               <header><div><span>设备本地配装</span><h2>{selected.title}</h2><p>{selected.note || "尚未添加备注"}</p></div><b>Lv.{selected.level}</b></header>
-              <div className="saved-build-sets">{selectedSets.slice(0, 5).map(([name, count]) => <i key={name}>{localizeSetOrGrace(name)} <b>{count}</b></i>)}</div>
+              {shownSelectedSets.length ? <div className="saved-build-sets">{shownSelectedSets.slice(0, 5).map(([name, count]) => <i key={name}>{shownSetName(name)} <b>{count}</b></i>)}</div> : null}
               <div className="saved-build-stats">{Object.entries(selected.attributes).map(([key, value]) => <span key={key}><small>{ATTRIBUTE_NAMES[key as AttributeKey]}</small><strong>{value}</strong></span>)}</div>
               <div className="saved-build-equipment">{EQUIPMENT_SLOT_ORDER.map((slot) => {
                 const item = selected.equipment.find((entry) => entry.slot === slot);
-                return <div key={slot}><span>{SLOT_NAMES[slot]}</span><strong>{item ? localizeItemName(item.id, item.nameZh) : "未装备"}</strong><small>{item ? `${localizeSetOrGrace(item.setOrGrace)} · +${item.plus}` : "空槽"}</small></div>;
+                const setName = item && !(mobileLight && syntheticSelected) ? shownSetName(item.setOrGrace) : '';
+                return <div key={slot}><span>{SLOT_NAMES[slot]}</span><strong>{item ? localizeItemName(item.id, item.nameZh) : "未装备"}</strong><small>{item ? `${setName ? setName + ' · ' : ''}+${item.plus}` : "空槽"}</small></div>;
               })}</div>
               <div className="saved-build-actions">
                 <button type="button" onClick={() => void handleBuildCard(selected)} disabled={cardState === "working"}><ImageDown aria-hidden="true" />{cardState === "working" ? "正在生成" : cardState === "shared" ? "已打开分享" : cardState === "saved" ? "图片已保存" : cardState === "failed" ? "生成失败" : "分享配装图片"}</button>
@@ -839,6 +856,7 @@ function ProgressView({ snapshot, refreshing, onCapture }: { snapshot: SaveSnaps
   return (
     <div className="page-stack">
       <section className="page-intro"><p className="eyebrow">旅途簿</p><h1>旅途进度</h1><p>已验证的成长记录与仍待映射的进度字段分开展示，不会把未知字节伪装成准确进度。</p></section>
+      <ExperimentalScrollPanel snapshot={snapshot} />
       <section className="verified-progress" aria-label="已验证的成长记录">
         <article><span>已解析</span><strong>{proficiencyEntries.length}</strong><h2>修行熟练度</h2><p>{trainedDisciplines} 类已有修行记录，包含武器、忍术与阴阳术。</p></article>
         <article><span>已解析</span><strong>{snapshot.inventorySummary.scrollRecordsDetected}</strong><h2>绘卷记录</h2><p>已读取名称、等级、剩余挑战次数与已识别词条。</p></article>
@@ -1069,8 +1087,15 @@ export function SafetyView({ snapshot, agentStatus, sources, refreshing, onReadS
 
 export default function App() {
   const nativeApp = isNativeApp();
+  const desktopMode = !nativeApp && !privateMobilePresentation();
   const [view, setView] = useState<ViewName>("overview");
   const [snapshot, setSnapshot] = useState<SaveSnapshot | null>(null);
+  const remoteDisplayed = useRef(false);
+  const acceptRemoteSnapshot = (next: SaveSnapshot | null) => {
+    if (next === null) { if (remoteDisplayed.current) { setSnapshot(null); setArchiveInfo(null); } remoteDisplayed.current = false; return; }
+    if (!isSupportedRemoteSnapshot(next)) return;
+    remoteDisplayed.current = true; setSnapshot(next); setArchiveInfo(null); setError(''); setStartupFailed(false);
+  };
   const [error, setError] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [startupAttempt, setStartupAttempt] = useState(0);
@@ -1087,6 +1112,21 @@ export default function App() {
   const fileRef = useRef<HTMLInputElement>(null);
   const importLock = useRef(false);
   const [importing, setImporting] = useState(false);
+  const [desktopReadState, setDesktopReadState] = useState<DesktopReadState>('idle');
+  const [desktopContext, setDesktopContext] = useState<DesktopDataContext | null>(null);
+  const desktopContextRef = useRef<DesktopDataContext | null>(null), desktopEpoch = useRef(0);
+  const operationOwner = useRef<object | null>(null), fileOperation = useRef<{ epoch:number } | null>(null);
+  const changeDesktopContext = useCallback((next:DesktopDataContext | null) => {
+    if (sameDesktopContext(desktopContextRef.current,next)) return;
+    desktopEpoch.current++; desktopContextRef.current=next ? {...next} : null;
+    setDesktopContext(next ? {...next} : null);
+    setSnapshot(null);setArchiveInfo(null);setSnapshots([]);setSaveSources([]);
+    setError('');setRefreshNotice(null);setDesktopReadState('idle');setStartupFailed(false);
+    setInitialized(!next);setView('overview');
+  },[]);
+  const currentDesktop = (context:DesktopDataContext | null,epoch:number) =>
+    !!context && desktopEpoch.current===epoch && sameDesktopContext(desktopContextRef.current,context);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1094,6 +1134,19 @@ export default function App() {
 
   useEffect(() => {
     const controller = new AbortController();
+    if (desktopMode) {
+      // Login never adopts legacy latest or an old account/session selection.
+      const context=desktopContext,epoch=desktopEpoch.current;
+      setSnapshot(null);setArchiveInfo(null);setSnapshots([]);setStartupFailed(false);setError('');
+      if (!context) { setSaveSources([]);setInitialized(true);return () => controller.abort(); }
+      setInitialized(false);
+      loadSaveSources(controller.signal,context).then(sources => {
+        if (!controller.signal.aborted && currentDesktop(context,epoch)) setSaveSources(sources);
+      }).catch(reason => {
+        if (!controller.signal.aborted && currentDesktop(context,epoch)) {setStartupFailed(true);setError(reason instanceof Error?reason.message:'无法读取存档来源，请重试。');}
+      }).finally(() => {if(!controller.signal.aborted && currentDesktop(context,epoch))setInitialized(true);});
+      return () => controller.abort();
+    }
     setStartupFailed(false); setError("");
     Promise.all([loadLatestSnapshot(controller.signal), loadSnapshotIndex(controller.signal), loadSaveSources(controller.signal).catch(() => []), loadDeviceArchiveInfo()])
       .then(([latest, index, sources, storedArchiveInfo]) => {
@@ -1109,7 +1162,7 @@ export default function App() {
       })
       .finally(() => { if (!controller.signal.aborted) setInitialized(true); });
     return () => controller.abort();
-  }, [nativeApp, startupAttempt]);
+  }, [nativeApp, desktopMode, startupAttempt, desktopContext?.accountScope, desktopContext?.sessionId]);
 
   useEffect(() => {
     const captureInstallPrompt = (event: Event) => {
@@ -1183,38 +1236,35 @@ export default function App() {
   }
 
   async function handleRefresh(sourceId?: string, label?: string) {
-    if (importLock.current) return;
-    importLock.current = true;
+    const context=desktopContextRef.current,epoch=desktopEpoch.current;
+    if (importLock.current || desktopMode && !context) return false;
+    const owner={epoch};operationOwner.current=owner;importLock.current=true;
     try {
-      setRefreshing(true);
-      setError("");
-      setRefreshNotice(null);
-      const previous = snapshot;
-      const next = await refreshSnapshot(sourceId, label);
-      setSnapshot(next);
-      setArchiveInfo(null);
-      if (previous) {
-        const sameSourceHash = previous.safety.originalMainSaveSha256 === next.safety.originalMainSaveSha256;
-        const sameLoadout = loadoutFingerprint(previous) === loadoutFingerprint(next);
-        if (sameSourceHash) {
-          setRefreshNotice({ kind: "unchanged", text: "读取完成，但原始存档内容没有变化。请先确认游戏内保存图标已经结束，再重新读取。" });
-        } else if (sameLoadout) {
-          setRefreshNotice({ kind: "saved", text: "已读取到新的存档内容，但装备槽标记没有变化；当前页面因此继续显示上一组装备。" });
-        } else {
-          setRefreshNotice({ kind: "equipment", text: "已读取到新的存档，装备槽变化已经同步。" });
-        }
+      setRefreshing(true);setError('');setRefreshNotice(null);
+      const previous=snapshot;
+      const next=await refreshSnapshot(sourceId,label,desktopMode?context!:undefined);
+      if(desktopMode) {
+        if(!currentDesktop(context,epoch))return false;
+        await saveDesktopSnapshot(context!,next,undefined,()=>currentDesktop(context,epoch));
+        if(!currentDesktop(context,epoch))return false;
       }
-      setSnapshotSource("api");
-      const [, sources, index] = await Promise.all([
-        refreshAgentStatus(), loadSaveSources().catch(() => []), loadSnapshotIndex().catch(() => []),
-      ]);
-      setSaveSources(sources); setSnapshots(index);
-      setView("overview");
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "刷新失败，请确认只读存档副本和本地服务可用。");
+      setSnapshot(next);setArchiveInfo(null);
+      if(previous) {
+        const sameSourceHash=previous.safety.originalMainSaveSha256===next.safety.originalMainSaveSha256;
+        const sameLoadout=loadoutFingerprint(previous)===loadoutFingerprint(next);
+        setRefreshNotice({kind:sameSourceHash?'unchanged':sameLoadout?'saved':'equipment',
+          text:sameSourceHash?'读取完成，但原始存档内容没有变化。':sameLoadout?'已读取新的存档，装备槽标记没有变化。':'已读取新的存档，装备槽变化已经同步。'});
+      }
+      setSnapshotSource('api');
+      const [,sources,index]=await Promise.all([refreshAgentStatus(),loadSaveSources(undefined,desktopMode?context!:undefined).catch(()=>[]),
+        desktopMode?loadDesktopSnapshotIndex(context!).catch(()=>[]):loadSnapshotIndex().catch(()=>[])]);
+      if(desktopMode && !currentDesktop(context,epoch))return false;
+      setSaveSources(sources);setSnapshots(index);setView('overview');return true;
+    } catch(reason) {
+      if(!desktopMode || currentDesktop(context,epoch))setError(reason instanceof Error?reason.message:'刷新失败，旧档案仍保留。');
+      return false;
     } finally {
-      importLock.current = false;
-      setRefreshing(false);
+      if(operationOwner.current===owner){operationOwner.current=null;importLock.current=false;setRefreshing(false);}
     }
   }
 
@@ -1249,46 +1299,36 @@ export default function App() {
     }
   }
 
-  if (!initialized) return <LoadingScreen />;
-  if (nativeApp) return <MobileApp snapshot={snapshot} archiveInfo={archiveInfo} error={error} notice={refreshNotice?.text} noticeWarning={refreshNotice?.kind === "partial"} importing={importing}
+  if (!initialized && (nativeApp || privateMobilePresentation())) return <MobileLoadingScreen />;
+  if (nativeApp || privateMobilePresentation()) return <MobileApp onRemoteSnapshot={acceptRemoteSnapshot} snapshot={snapshot} archiveInfo={archiveInfo} error={error} notice={refreshNotice?.text} noticeWarning={refreshNotice?.kind === "partial"} importing={importing}
     onRetryLoad={startupFailed ? () => { setInitialized(false); setStartupAttempt(value => value + 1); } : undefined}
-    onArchive={archive => handleImport(archive, true)} onBackup={() => fileRef.current?.click()} onExport={() => void handleExport()}
+    onArchive={archive => handleImport(archive, nativeApp)} onBackup={() => fileRef.current?.click()} onExport={() => void handleExport()}
     builds={snapshot ? <BuildsView snapshot={snapshot} /> : null}>
     <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={event => { void handleImport(event.target.files?.[0]); event.currentTarget.value = ""; }} />
   </MobileApp>;
-  const acceptDesktop = async (value: SaveSnapshot) => {
-    const info: DeviceArchiveInfo = { schemaVersion: "1.0.0", source: "legacy-snapshot", importedAt: new Date().toISOString(), sourceSnapshotId: value.snapshotId, sourceLastWriteLocal: value.sourceLastWriteLocal, buildCount: 0 };
-    await saveImportedSnapshot(value, info);
-    setSnapshot(value); setArchiveInfo(info); setSnapshotSource("api"); setView("overview"); setError("");
-    setRefreshNotice({ kind: "saved", text: "电脑分析结果已保存。请在下方开启或更新手机同步，再用手机接收；尚未自动发送到手机。" });
-    // A history-list outage must not turn a committed character into a failed import.
-    setSnapshots(await loadSnapshotIndex().catch(() => []));
+  const contextAtRender=desktopContext,epochAtRender=desktopEpoch.current;
+  const acceptDesktop = async (value:SaveSnapshot) => {
+    if(!currentDesktop(contextAtRender,epochAtRender))throw new Error('LOCAL_DATA_CONTEXT_CHANGED');
+    const info:DeviceArchiveInfo={schemaVersion:'1.0.0',source:'legacy-snapshot',importedAt:new Date().toISOString(),
+      sourceSnapshotId:value.snapshotId,sourceLastWriteLocal:value.sourceLastWriteLocal,buildCount:0};
+    await saveDesktopSnapshot(contextAtRender!,value,info,()=>currentDesktop(contextAtRender,epochAtRender));
+    if(!currentDesktop(contextAtRender,epochAtRender))throw new Error('LOCAL_DATA_CONTEXT_CHANGED');
+    setSnapshot(value);setArchiveInfo(info);setSnapshotSource('api');setView('overview');setError('');
+    setRefreshNotice({kind:'saved',text:'电脑已解析并保存规范快照；当前未发送到手机。'});
+    const index=await loadDesktopSnapshotIndex(contextAtRender!).catch(()=>[]);
+    if(currentDesktop(contextAtRender,epochAtRender))setSnapshots(index);
   };
-  const newerSave = snapshotSource === "api" && isSourceNewer(agentStatus?.source?.latestWriteLocal, snapshot?.sourceLastWriteLocal);
-  const advancedViews = NAV.filter(({ id }) => ["history", "install", "progress", "safety"].includes(id));
-  const tools = <>
-    {snapshot ? <DesktopSyncPanel snapshot={snapshot} disabled={importing || refreshing} /> : <p className="nm-note">读取存档后，这里会出现手机同步二维码入口。</p>}
-    <details className="nd-advanced"><summary>高级工具 · 进度、记录与安全</summary>
-      <div className="nd-advanced-nav">{advancedViews.map(({ id, label }) => <button key={id} aria-pressed={view === id} onClick={() => setView(id)}>{label}</button>)}</div>
-      {snapshot && view === "history" ? <HistoryView snapshot={snapshot} snapshots={snapshots} /> : null}
-      {view === "install" ? <InstallView installPrompt={installPrompt} onInstall={handleInstall} /> : null}
-      {snapshot && view === "progress" ? <ProgressView snapshot={snapshot} refreshing={refreshing} onCapture={label => handleRefresh(undefined, label)} /> : null}
-      {snapshot && view === "safety" ? <SafetyView snapshot={snapshot} agentStatus={agentStatus} sources={saveSources} refreshing={refreshing} onReadSource={handleRefresh} /> : null}
-      {snapshots.length ? <label className="snapshot-picker">历史快照<select disabled={refreshing || importing} value={snapshot?.snapshotId ?? ""} onChange={event => void handleSnapshotChange(event.target.value)}>{snapshots.map(item => <option key={item.snapshotId} value={item.snapshotId}>{item.researchLabel || item.snapshotId} · 等级 {item.level ?? "未知"}</option>)}</select></label> : null}
-    </details>
-  </>;
-  const notices = <>
-    {newerSave ? <div className="freshness-banner" role="status"><div><strong>电脑端检测到较新的存档</strong><span>点击读取后才会更新；不会自动覆盖手机档案。</span></div><button onClick={() => void handleRefresh()}>立即读取</button></div> : null}
-    {snapshotSource === "cache" ? <p className="nm-alert">当前展示本机缓存；电脑服务未连接，资料不会自动更新。</p> : null}
-    {agentStatus?.steamCloud?.state === "cloud-newer" ? <p className="nm-alert" role="status">Steam 云端记录比本机新，请等待 Steam 下载完成后再读取。</p> : null}
-    {agentStatus?.steamCloud?.state === "local-newer" ? <p className="nm-alert" role="status">Steam 云端尚未上传最新本机存档；这里仍可读取本机文件。</p> : null}
-  </>;
-  return <MobileApp snapshot={snapshot} archiveInfo={archiveInfo} error={error} notice={refreshNotice?.text} noticeWarning={refreshNotice?.kind === "partial"} importing={importing}
-    onArchive={archive => handleImport(archive)} onBackup={() => fileRef.current?.click()} onExport={() => void handleExport()}
-    builds={snapshot ? <BuildsView snapshot={snapshot} /> : null}
-    desktop={{ tools, notices, importPanel: <DesktopImport onSnapshot={acceptDesktop} disabled={refreshing || importing}
-      onBegin={() => { if (importLock.current) return false; importLock.current = true; setImporting(true); return true; }}
-      onEnd={() => { importLock.current = false; setImporting(false); }} />, refreshing, newerSave, onRefresh: () => void handleRefresh() }}>
-    <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={event => { void handleImport(event.target.files?.[0]); event.currentTarget.value = ""; }} />
-  </MobileApp>;
+  return <DesktopApp dataContext={desktopContext} onDataContextChange={changeDesktopContext} sourceNewer={isSourceNewer(agentStatus?.source?.latestWriteLocal, snapshot?.sourceLastWriteLocal)} snapshot={snapshot} sources={saveSources} loading={!initialized} error={error} notice={refreshNotice?.text}
+    busy={refreshing || importing} readState={desktopReadState} onReadSource={handleRefresh} onDismissRead={() => setDesktopReadState('idle')}
+    onRetryLoad={() => { setInitialized(false); setStartupAttempt(value => value + 1); }}
+    importPanel={<DesktopImport presentation="figma" hasCurrentSnapshot={Boolean(snapshot)} requestHeaders={desktopContext ? desktopContextHeaders(desktopContext) : {}} onReadState={state => {if(currentDesktop(contextAtRender,epochAtRender))setDesktopReadState(state);}} onSnapshot={acceptDesktop} disabled={refreshing || importing}
+      onBegin={() => {
+        if(importLock.current || !currentDesktop(contextAtRender,epochAtRender))return false;
+        const owner={epoch:epochAtRender};fileOperation.current=owner;operationOwner.current=owner;
+        importLock.current=true;setImporting(true);return true;
+      }}
+      onEnd={() => {
+        const owner=fileOperation.current;
+        if(owner?.epoch===epochAtRender && operationOwner.current===owner){operationOwner.current=null;fileOperation.current=null;importLock.current=false;setImporting(false);}
+      }} />} />;
 }

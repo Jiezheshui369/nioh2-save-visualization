@@ -1,0 +1,107 @@
+/* Final desktop Figma type scale. Every rule stays inside the desktop shell. */
+#root .nm-shell.nd-shell { --nd-type-body:22px; --nd-line-body:31px; --nd-type-secondary:26px; --nd-line-secondary:37px; --nd-type-title:32px; --nd-line-title:45px; --nd-type-small:18px; --nd-line-small:26px; grid-template-columns:212px minmax(0,1fr); grid-template-rows:108px minmax(0,1fr); font-size:var(--nd-type-body); line-height:var(--nd-line-body); }
+#root .nm-shell.nd-shell :is(button,input,textarea,select) { font-size:var(--nd-type-body); line-height:var(--nd-line-body); min-height:52px; max-width:100%; white-space:normal; word-break:normal; overflow-wrap:break-word; }
+#root .nm-shell.nd-shell :is(h1,h2,h3,h4,p,dt,dd,small,label,summary) { word-break:normal; overflow-wrap:break-word; }
+#root .nm-shell.nd-shell :is(h1,.nd-brand b) { font-size:var(--nd-type-title); line-height:var(--nd-line-title); }
+#root .nm-shell.nd-shell :is(h2,h3) { font-size:var(--nd-type-secondary); line-height:var(--nd-line-secondary); }
+#root .nm-shell.nd-shell :is(h4,label,summary) { font-size:var(--nd-type-body); line-height:var(--nd-line-body); }
+#root .nm-shell.nd-shell :is(small,.nm-note,.nd-workflow,.sync-panel p,.native-account p) { font-size:var(--nd-type-small); line-height:var(--nd-line-small); }
+#root .nm-shell.nd-shell .nd-sidebar { padding:28px 20px 24px; min-width:0; }
+#root .nm-shell.nd-shell .nd-brand { padding:4px 4px 34px; }
+#root .nm-shell.nd-shell .nd-brand b { white-space:nowrap; letter-spacing:0; }
+#root .nm-shell.nd-shell .nd-nav button { font-size:22px; line-height:31px; height:auto; min-height:54px; padding:10px 12px; gap:20px; white-space:normal; }
+#root .nm-shell.nd-shell .nd-nav small { font-size:22px; line-height:31px; }
+#root .nm-shell.nd-shell .nd-sidebar-foot { padding:30px 4px 0; display:grid; gap:0; font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nd-sidebar-foot small { font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nd-version-value { white-space:normal; word-break:normal; overflow-wrap:normal; hyphens:manual; }
+#root .nm-shell.nd-shell .nd-toolbar { min-height:108px; height:108px; padding:16px 32px; gap:12px; }
+#root .nm-shell.nd-shell .nd-toolbar > div:first-child { flex:1; min-width:0; height:76px; display:flex; flex-direction:column; justify-content:flex-start; gap:3px; }
+#root .nm-shell.nd-shell .nd-toolbar span { font-size:18px; line-height:26px; letter-spacing:0; }
+#root .nm-shell.nd-shell .nd-toolbar strong { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell .nd-toolbar > div:last-child { flex:0 0 auto; display:flex; gap:12px; }
+#root .nm-shell.nd-shell .nd-toolbar button { padding:10px 16px; min-width:128.8px; min-height:52px; }
+#root .nm-shell.nd-shell .nm-scroll { padding:24px max(34px,calc((100% - 1160px)/2)) 20px; min-width:0; }
+#root .nm-shell.nd-shell .nm-character-page { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+#root .nm-shell.nd-shell .nm-character-head { min-height:72px; height:auto; padding:8px 20px; align-items:center; }
+#root .nm-shell.nd-shell .nm-character-head h1 { font-size:32px; line-height:45px; }
+#root .nm-shell.nd-shell .nd-character-summary { height:104px; min-height:104px; padding:12px 20px; grid-template-columns:200px repeat(2,minmax(0,1fr)); gap:24px; align-items:center; }
+#root .nm-shell.nd-shell .nd-character-summary > div { min-width:0; align-items:center; padding:0; gap:10px; }
+#root .nm-shell.nd-shell .nd-character-summary > div > div { min-width:0; flex-direction:column; align-items:flex-start; gap:4px; }
+#root .nm-shell.nd-shell .nd-character-summary .nd-summary-level > div { flex-direction:row; align-items:center; gap:10px; }
+#root .nm-shell.nd-shell .nd-character-summary :is(small,strong) { font-size:26px; line-height:37px; margin:0; white-space:normal; overflow-wrap:break-word; }
+#root .nm-shell.nd-shell .nd-character-summary img.nm-currency-icon { width:40px; height:40px; flex:0 0 40px; margin:0; object-fit:contain; }
+#root .nm-shell.nd-shell .nd-character-workspace { display:block; grid-column:1/-1; min-width:0; }
+#root .nm-shell.nd-shell .nd-character-details { width:100%; height:570px; min-width:0; padding:24px; display:grid; grid-template-rows:45px 450px; gap:25px; }
+#root .nm-shell.nd-shell .nd-details-heading { display:block; min-width:0; }
+#root .nm-shell.nd-shell .nd-details-heading h2 { margin:0; font-size:32px; line-height:45px; }
+#root .nm-shell.nd-shell .nd-details-scroll { width:100%; height:450px; min-height:0; overflow:auto; padding-right:0; }
+#root .nm-shell.nd-shell .nm-detail-category > h3 { margin:0 0 12px; font-size:26px; line-height:37px; gap:12px; flex-wrap:wrap; }
+#root .nm-shell.nd-shell .nd-detail-group h4 { margin:0 0 6px; font-size:22px; line-height:31px; flex-wrap:wrap; }
+#root .nm-shell.nd-shell .nd-detail-values { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; }
+#root .nm-shell.nd-shell .nd-detail-values > div { min-width:0; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:7px 0; }
+#root.g1n-all-font .nm-shell.nd-shell .nd-detail-values dt { font-size:22px; line-height:31px; white-space:normal; }
+#root .nm-shell.nd-shell .nd-detail-values dt small { font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nd-detail-values dd { font-size:22px; line-height:31px; max-width:180px; }
+#root .nm-shell.nd-shell .nd-detail-values [data-value-source="snapshot-basic"] dd,
+#root .nm-shell.nd-shell .nd-detail-values [data-value-source="synthetic"] dd { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell .nm-character-page > .nm-source-time { border:1px solid var(--nm-border); background:var(--charcoal); padding:12px 16px; font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nd-loadout-overview { min-height:104px; padding:20px; }
+#root .nm-shell.nd-shell .nm-build-head { padding:0; }
+#root .nm-shell.nd-shell .nm-build-head h1 { font-size:32px; line-height:45px; }
+#root .nm-shell.nd-shell .nm-build-head p { margin-top:6px; font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nm-build-head > div > .nm-icon-slot { display:none; }
+#root .nm-shell.nd-shell .nm-loadout-list { padding:4px 20px 20px; gap:8px 24px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+#root .nm-shell.nd-shell .nm-warehouse { padding:20px; gap:14px; min-width:0; }
+#root .nm-shell.nd-shell .nm-warehouse-list { gap:8px 24px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+#root.g1n-all-font .nm-shell.nd-shell .nm-equipment-row { height:auto; min-height:92px; padding:8px 0; gap:14px; align-items:center; }
+#root.g1n-all-font .nm-shell.nd-shell .nm-equipment-row .nm-item-copy { display:flex; flex-direction:column; justify-content:center; max-width:470px; gap:0; }
+#root.g1n-all-font .nm-shell.nd-shell :is(.nm-item-name,.nm-item-copy > b) { display:block; font-size:26px; line-height:37px; white-space:normal; overflow:visible; text-overflow:clip; }
+#root.g1n-all-font .nm-shell.nd-shell :is(.nm-item-meta,.nm-item-copy > small) { display:block; font-size:18px; line-height:26px; white-space:normal; overflow:visible; text-overflow:clip; }
+#root .nm-shell.nd-shell .nm-badge { font-size:18px; line-height:26px; white-space:nowrap; }
+#root .nm-shell.nd-shell .nm-icon-text { font-size:18px; line-height:26px; }
+#root .nm-shell.nd-shell .nm-icon-slot:has(.nm-icon-text) { overflow:visible; }
+#root .nm-shell.nd-shell .nm-icon-text { white-space:nowrap; flex-shrink:0; overflow:visible; }
+#root .nm-shell.nd-shell .nm-chevron { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell .nm-two-buttons { max-width:none; }
+#root .nm-shell.nd-shell .nm-filter-bar { max-width:none; gap:12px; }
+#root .nm-shell.nd-shell .nm-warehouse input { font-size:22px; line-height:31px; }
+#root .nm-shell.nd-shell :is(.nm-list-heading,.nm-inventory-row,.nm-filter-grid,.nm-detail-actions,.nm-more-actions) { min-width:0; }
+#root .nm-shell.nd-shell .nm-list-heading { flex-wrap:wrap; gap:12px; }
+#root .nm-shell.nd-shell .nm-list-heading h2 { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell .nm-inventory-row :is(b,strong) { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell :is(.nm-detail,.nm-filter) { max-width:100%; min-width:0; }
+#root .nm-shell.nd-shell .nm-detail-card h1 { font-size:26px; line-height:37px; }
+#root .nm-shell.nd-shell .nm-values :is(dt,dd) { font-size:22px; line-height:31px; }
+#root .nm-shell.nd-shell .nm-values dd { max-width:200px; }
+#root .nm-shell.nd-shell .nm-detail-actions { flex-wrap:wrap; gap:12px; }
+#root .nm-shell.nd-shell .nm-more { gap:20px; }
+#root .nm-shell.nd-shell .nd-workflow { height:auto; min-height:64px; display:flex; flex-wrap:wrap; gap:18px; padding:16px 20px; }
+#root .nm-shell.nd-shell .sync-panel { padding:20px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; min-width:0; }
+#root .nm-shell.nd-shell .sync-panel :is(h2,p) { margin:0; max-width:100%; }
+#root .nm-shell.nd-shell .sync-panel button { width:auto; margin:0; padding:10px 16px; }
+#root .nm-shell.nd-shell :is(.native-account,.remote-mvp-panel,.nm-state-card) { height:auto; min-width:0; }
+#root .nm-shell.nd-shell .nm-alert p { white-space:pre-line; font-size:22px; line-height:31px; }
+#root .nm-shell.nd-shell .saved-build-detail h2 { font-size:32px; line-height:45px; }
+#root .nm-shell.nd-shell :is(.saved-build-stats strong,.saved-build-equipment strong) { font-size:26px; line-height:37px; }
+@media(max-width:1100px) {
+ #root .nm-shell.nd-shell { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto minmax(0,1fr); }
+ #root .nm-shell.nd-shell .nd-sidebar { grid-column:1; grid-row:1; padding:12px 16px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; border-right:0; }
+ #root .nm-shell.nd-shell .nd-brand { display:block; padding:0; grid-column:1; grid-row:1; }
+ #root .nm-shell.nd-shell .nd-sidebar-foot { display:grid; grid-column:2; grid-row:1; padding:0; }
+ #root .nm-shell.nd-shell .nd-nav { grid-column:1/-1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
+ #root .nm-shell.nd-shell .nd-nav button { justify-content:center; gap:12px; padding:8px; }
+ #root .nm-shell.nd-shell .nd-nav small { display:block; }
+ #root .nm-shell.nd-shell .nd-toolbar { grid-column:1; grid-row:2; height:auto; flex-wrap:wrap; }
+ #root .nm-shell.nd-shell .nd-toolbar > div:first-child { height:auto; flex:1 1 300px; }
+ #root .nm-shell.nd-shell .nm-scroll { grid-column:1; grid-row:3; padding:24px 24px 20px; }
+ #root .nm-shell.nd-shell .nd-detail-values { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:800px) {
+ #root .nm-shell.nd-shell .nm-scroll { padding:20px 16px; }
+ #root .nm-shell.nd-shell .nd-toolbar { padding:16px; }
+ #root .nm-shell.nd-shell .nd-character-summary { height:auto; min-height:104px; grid-template-columns:minmax(0,1fr); gap:16px; }
+ #root .nm-shell.nd-shell :is(.nm-loadout-list,.nm-warehouse-list) { grid-template-columns:minmax(0,1fr); }
+ #root .nm-shell.nd-shell .nd-character-details { padding:20px; height:570px; grid-template-rows:auto minmax(0,1fr); gap:20px; }
+ #root .nm-shell.nd-shell .nd-details-scroll { height:100%; }
+ #root .nm-shell.nd-shell .nm-filter-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}

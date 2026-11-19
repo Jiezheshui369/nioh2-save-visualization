@@ -1,0 +1,37 @@
+.nm-complete-character-details .nd-details-heading { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.nm-complete-character-details .nd-details-heading > span { color:#f1e3c9; font-size:11px; white-space:nowrap; }
+.nm-complete-character-details .nd-details-provenance { margin:0; font-size:11px; line-height:18px; color:#f1e3c9; }
+.nm-complete-character-details .nd-details-jump { display:flex; align-items:center; gap:8px; font-size:11px; color:#f1e3c9; }
+.nm-complete-character-details .nd-details-jump select { min-width:0; max-width:300px; min-height:32px; padding:3px 8px; }
+.nm-complete-character-details .nd-details-jump > span { margin-left:auto; white-space:nowrap; }
+.nm-complete-character-details .nd-details-scroll { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; position:relative; scrollbar-color:#99784d transparent; padding-right:6px; }
+.nm-complete-character-details .nm-detail-category { margin-bottom:20px; }
+.nm-complete-character-details .nm-detail-category > h3 { color:#fff2d4; margin:0 0 12px; font-size:16px; line-height:24px; display:flex; align-items:baseline; gap:12px; }
+.nm-complete-character-details .nd-detail-group { margin-bottom:16px; }
+.nm-complete-character-details .nd-detail-group h4 { color:#f1e3c9; margin:0 0 6px; font-size:13px; font-weight:500; display:flex; align-items:baseline; gap:12px; }
+.nm-complete-character-details :is(h3,h4) small { font-size:11px; font-weight:400; }
+.nm-complete-character-details .nd-detail-values { margin:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; }
+.nm-complete-character-details .nd-detail-values > div { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:start; padding:8px 0; border-bottom:1px solid rgba(219,181,116,.18); }
+.nm-complete-character-details .nd-detail-values dt { min-width:0; font-size:12px; line-height:20px; overflow-wrap:anywhere; }
+.nm-complete-character-details .nd-detail-values dt small { display:block; color:#f1e3c9; font-size:9px; }
+.nm-complete-character-details .nd-detail-values dd { margin:0; max-width:140px; color:#fff2d4; font-size:14px; text-align:right; overflow-wrap:anywhere; }
+.nm-shell .nm-mobile-character-details { display:flex; flex-direction:column; gap:12px; height:min(680px,calc(100dvh - 120px)); min-height:440px; }
+.nm-shell .nm-mobile-character-details .nd-details-heading { flex-wrap:wrap; gap:0 8px; }
+.nm-shell .nm-mobile-character-details .nd-details-heading h2 { margin:0; font-size:18px; }
+.nm-shell .nm-mobile-character-details .nd-detail-values { grid-template-columns:minmax(0,1fr); }
+.nm-shell .nm-mobile-character-details .nd-details-jump { flex-wrap:wrap; }
+.nm-shell .nm-mobile-character-details .nd-details-jump select { flex:1; max-width:100%; }
+.nm-shell:not(.nd-shell) .nm-resources[data-long-currency="true"] { grid-template-columns:minmax(0,1fr) !important; }
+
+/* One20px page-end inset; final child margins must not add a second gap. */
+.nm-shell:not(.nd-shell) .nm-scroll .nm-character-page > .nm-section.nm-complete-character-details { margin-bottom:0; }
+
+/* Final rows use the panel inset only, avoiding a second20px group margin. */
+.nm-complete-character-details .nm-detail-category:last-child,
+.nm-complete-character-details .nm-detail-category:last-child > .nd-detail-group:last-child { margin-bottom:0; }
+
+/* Keep the final visible row approximately20px from the panel edge at every width. */
+.nm-shell .nm-scroll .nm-character-page > section.nm-section.nm-complete-character-details { padding-bottom:19px; }
+
+/* Currency art is larger while keeping its native aspect ratio and row alignment. */
+#root .nm-shell:not(.nd-shell) .nm-resources img.nm-currency-icon { width:32px; height:32px; flex:0 0 32px; object-fit:contain; }

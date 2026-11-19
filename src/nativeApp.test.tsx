@@ -12,6 +12,19 @@ import allPairingCases from "../scripts/ios-tests/pairing-cases.json";
 const pairingCases = allPairingCases.filter(item => item.valid);
 
 vi.mock("./runtime", () => ({ isNativeApp: () => true }));
+// Keep the retired receiver's storage integration covered without putting it back
+// into the product's navigation. This harness exists only in this test module.
+vi.mock("./MobileMore", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./MobileMore")>();
+  const { MobileReceivePanel } = await import("./SyncPanel");
+  return {
+    ...original,
+    MobileMore: (props: Parameters<typeof original.MobileMore>[0]) => <>
+      <original.MobileMore {...props} />
+      <MobileReceivePanel onArchive={props.onArchive} active={props.active} />
+    </>,
+  };
+});
 vi.mock("./mobileSync", async (original) => ({ ...await original<typeof import("./mobileSync")>(), LocalSync: { status: vi.fn(), receive: vi.fn(), scan: vi.fn(), forget: vi.fn() } }));
 
 // Synthetic fixture exists only in tests; never included in the app bundle.
@@ -40,7 +53,7 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); window.localStorage.clear(); });
 
-describe("native offline archive workflow", () => {
+describe("native offline archive workflow with a test-only legacy receiver", () => {
   it('keeps displayed and saved data identical if the receive caller later changes its object', async () => {
     const incoming = createAssetPackage(character, []);
     vi.mocked(LocalSync.receive).mockResolvedValue({ archive: incoming, revision: 'e'.repeat(64) });
@@ -53,8 +66,8 @@ describe("native offline archive workflow", () => {
     await screen.findByRole('button', { name: '扫描电脑二维码' });
     fireEvent.change(screen.getByLabelText('手机配对信息'), { target: { value: pairingCases[0].qr } });
     fireEvent.click(screen.getByRole('button', { name: '确认配对并同步' }));
-    expect(await screen.findByText('123')).toBeVisible();
-    expect(screen.queryByText('9999')).not.toBeInTheDocument();
+    expect(await screen.findByText('123', { selector: '.nm-level strong, .nd-summary-level strong' })).toBeVisible();
+    expect(screen.queryByText('9999', { selector: '.nm-level strong, .nd-summary-level strong' })).not.toBeInTheDocument();
     await expect(loadCachedSnapshot({ required: true })).resolves.toMatchObject({ character: { level: 123 } });
   });
   it("recovers a stored character after a temporary startup read failure without resyncing", async () => {
@@ -63,10 +76,10 @@ describe("native offline archive workflow", () => {
     const open = vi.spyOn(window.indexedDB, "open").mockImplementation(() => { throw new DOMException("Denied", "SecurityError"); });
     render(<App />);
     expect(await screen.findByRole("alert")).toHaveTextContent("本机档案读取失败，原数据未删除");
-    expect(screen.queryByText("123")).not.toBeInTheDocument();
+    expect(screen.queryByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).not.toBeInTheDocument();
     open.mockRestore();
     fireEvent.click(screen.getByRole("button", { name: "重试读取本机档案" }));
-    expect(await screen.findByText("123")).toBeVisible();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeVisible();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "重试读取本机档案" })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
@@ -87,7 +100,7 @@ describe("native offline archive workflow", () => {
     await screen.findByRole("button", { name: "扫描电脑二维码" });
     fireEvent.change(screen.getByLabelText("手机配对信息"), { target: { value: pairingCases[0].qr } });
     fireEvent.click(screen.getByRole("button", { name: "确认配对并同步" }));
-    expect(await screen.findByText("123")).toBeVisible();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("角色已保存，但配装册合并失败");
     expect(screen.getByRole("alert")).toHaveTextContent("无需传文件");
     expect(screen.getByText("接收尚未全部完成").closest("details")).toHaveAttribute("open");
@@ -98,7 +111,7 @@ describe("native offline archive workflow", () => {
     expect(await screen.findByText("电脑分析结果已同步并保存到手机，关闭电脑后仍可查看。")).toBeInTheDocument();
     expect(await loadSavedBuilds()).toEqual([build]);
     app.unmount(); render(<App />);
-    expect(await screen.findByText("123")).toBeVisible();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeVisible();
     expect(await loadSavedBuilds()).toEqual([build]);
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -116,7 +129,7 @@ describe("native offline archive workflow", () => {
     const app = render(<App />);
     await screen.findByRole("button", { name: "扫描电脑二维码" });
     chooseArchive(app.container);
-    await screen.findByText("123");
+    await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' });
     fireEvent.click(screen.getByRole("button", { name: "更多" }));
     const incoming = createAssetPackage(character, []);
     incoming.character.currentLoadout = [null as never];
@@ -126,13 +139,13 @@ describe("native offline archive workflow", () => {
     fireEvent.click(screen.getByRole("button", { name: "确认配对并同步" }));
     expect(await screen.findByText("电脑返回的档案无效，旧档案未改变。")).toBeInTheDocument();
     app.unmount(); render(<App />);
-    expect(await screen.findByText("123")).toBeInTheDocument();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
   });
   it("keeps the old character when the sync payload is invalid", async () => {
     const app = render(<App />);
     await screen.findByRole("button", { name: "扫描电脑二维码" });
     chooseArchive(app.container);
-    await screen.findByText("123");
+    await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' });
     fireEvent.click(screen.getByRole("button", { name: "更多" }));
     vi.mocked(LocalSync.receive).mockResolvedValue({ archive: { invalid: true }, revision: "b".repeat(64) });
     fireEvent.click(screen.getByText("配对信息 / 手动输入"));
@@ -140,7 +153,7 @@ describe("native offline archive workflow", () => {
     fireEvent.click(screen.getByRole("button", { name: "确认配对并同步" }));
     expect(await screen.findByText("电脑返回的档案无效，旧档案未改变。")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "角色" }));
-    expect(screen.getByText("123")).toBeInTheDocument();
+    expect(screen.getByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
   });
   it("does not show a synced character when persistent storage rejects the write", async () => {
     render(<App />);
@@ -151,7 +164,7 @@ describe("native offline archive workflow", () => {
     fireEvent.change(screen.getByLabelText("手机配对信息"), { target: { value: pairingCases[0].qr } });
     fireEvent.click(screen.getByRole("button", { name: "确认配对并同步" }));
     expect(await screen.findByText("手机保存失败，旧档案仍保留，请检查存储空间后重试。")).toBeInTheDocument();
-    expect(screen.queryByText("123")).not.toBeInTheDocument();
+    expect(screen.queryByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).not.toBeInTheDocument();
   });
   it("receives from a paired PC without file selection and survives an offline remount", async () => {
     vi.mocked(LocalSync.receive).mockResolvedValue({ archive: createAssetPackage(character, []), revision: "a".repeat(64) });
@@ -161,27 +174,27 @@ describe("native offline archive workflow", () => {
     fireEvent.change(screen.getByLabelText("手机配对信息"), { target: { value: pairingCases[0].qr } });
     fireEvent.click(screen.getByRole("button", { name: "确认配对并同步" }));
     expect(await screen.findByText("电脑安全同步")).toBeInTheDocument();
-    expect(screen.getByText("123")).toBeInTheDocument();
+    expect(screen.getByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
     first.unmount(); render(<App />);
-    expect(await screen.findByText("123")).toBeInTheDocument();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
     expect(screen.getByText("电脑安全同步")).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
   it("imports a desktop package and restores it after remount without a network request", async () => {
     const first = render(<App />);
     await screen.findByRole("button", { name: "扫描电脑二维码" });
-    fireEvent.click(screen.getByText("高级：从已有备份恢复（可选）"));
-    expect(screen.queryByText("123")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("从已有备份恢复（可选）"));
+    expect(screen.queryByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).not.toBeInTheDocument();
     chooseArchive(first.container);
-    expect(await screen.findByText("123")).toBeInTheDocument();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
     expect(screen.getByText(/角色档案包已存入这台设备/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "读取存档" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "手机连接" })).not.toBeInTheDocument();
     first.unmount();
     render(<App />);
-    expect(await screen.findByText("123")).toBeInTheDocument();
-    expect(screen.getByText("截图记录 · 非自动解析")).toBeInTheDocument();
-    expect(screen.getByText("777")).toBeInTheDocument();
+    expect(await screen.findByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).toBeInTheDocument();
+    expect(screen.getByText(/截图记录 · 非自动解析/)).toBeInTheDocument();
+    expect(screen.getByText("777", { selector: '[data-value-source="screenshot"] dd' })).toBeInTheDocument();
     expect(screen.getByText(/来源存档时间/)).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -189,11 +202,11 @@ describe("native offline archive workflow", () => {
   it("keeps the empty screen and shows a failure if local persistence is unavailable", async () => {
     const first = render(<App />);
     await screen.findByRole("button", { name: "扫描电脑二维码" });
-    fireEvent.click(screen.getByText("高级：从已有备份恢复（可选）"));
+    fireEvent.click(screen.getByText("从已有备份恢复（可选）"));
     vi.stubGlobal("indexedDB", { open: () => { throw new Error("测试：存储空间不足"); } });
     chooseArchive(first.container);
-    expect(await screen.findByRole("alert")).toHaveTextContent("导入失败");
-    expect(screen.queryByText("123")).not.toBeInTheDocument();
+    expect(await screen.findByText(/导入失败/)).toBeVisible();
+    expect(screen.queryByText("123", { selector: '.nm-level strong, .nd-summary-level strong' })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "导入我的档案包" })).toBeEnabled();
   });
 });

@@ -1,19 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
-from PyInstaller.utils.hooks import copy_metadata
+import os
+from PyInstaller.utils.hooks import copy_metadata, collect_submodules
 
 
 project_root = Path(SPECPATH).resolve().parent
 datas = [
-    (str(project_root / "dist"), "dist"),
+    (str(project_root / "public" / "app.ico"), "public"),
+    (str(Path(os.environ.get('NIOH_DESKTOP_WEB_ROOT', str(project_root / 'dist'))).resolve()), "dist"),
     (str(project_root / "agent" / "data"), "agent/data"),
     (str(project_root / "agent" / "tools" / "katana" / "katana-savedata-resigner-cli.exe"), "agent/tools/katana"),
     (str(project_root / "agent" / "tools" / "katana" / "LICENSE.txt"), "agent/tools/katana"),
-    (str(project_root / "packaging" / "USER_GUIDE.txt"), "."),
+    (str(project_root / 'docs' / 'WINDOWS_PORTABLE_0716.md'), '.'),
     (str(project_root / "THIRD_PARTY_NOTICES.md"), "."),
     (str(project_root / "LICENSE"), "."),
+    (str(project_root / 'packaging' / 'desktop-webview-host.ps1'), 'packaging'),
 ]
-for package in ['pywebview', 'pythonnet', 'clr_loader', 'cffi', 'pycparser', 'proxy_tools', 'bottle', 'typing_extensions']:
+for package in ['pywebview', 'pythonnet', 'clr_loader', 'cffi', 'pycparser', 'proxy_tools', 'bottle', 'typing_extensions', 'cryptography', 'Authlib']:
     datas += copy_metadata(package)
 
 a = Analysis(
@@ -21,7 +24,7 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=collect_submodules('authlib.jose'),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

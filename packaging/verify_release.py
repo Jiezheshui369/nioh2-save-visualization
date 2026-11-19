@@ -21,7 +21,7 @@ def sha256(path: Path) -> str:
     return digest.hexdigest().upper()
 
 
-def verify_release(root: Path) -> dict[str, object]:
+def verify_release(root: Path, *, no_game_assets: bool = False) -> dict[str, object]:
     root = root.resolve()
     executable = root / "仁王2存档伴侣.exe"
     katana = root / "_internal" / "agent" / "tools" / "katana" / "katana-savedata-resigner-cli.exe"
@@ -54,6 +54,14 @@ def verify_release(root: Path) -> dict[str, object]:
     if forbidden:
         raise RuntimeError(f"发布目录混入存档数据：{', '.join(forbidden)}")
 
+    if no_game_assets:
+        forbidden_extra = [path.relative_to(root).as_posix() for path in files
+            if path.suffix.lower() in {'.sqlite', '.sqlite3', '.db', '.jks', '.keystore', '.pem', '.key', '.pfx', '.p12'}
+            or (path.is_relative_to(root / '_internal' / 'dist' / 'assets') and path.suffix.lower() in {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.dds'})
+            or 'demo-snapshot' in path.name.lower()]
+        if forbidden_extra:
+            raise RuntimeError(f'Portable contains forbidden data/assets: {forbidden_extra}')
+
     records = [
         {"path": path.relative_to(root).as_posix(), "size": path.stat().st_size, "sha256": sha256(path)}
         for path in sorted(files, key=lambda item: item.relative_to(root).as_posix())
@@ -64,6 +72,7 @@ def verify_release(root: Path) -> dict[str, object]:
         "application": "仁王2存档伴侣",
         "version": package["version"],
         "writeBackSupported": False,
+        "noGameImageAssets": no_game_assets,
         "fileCount": len(records),
         "totalBytes": sum(record["size"] for record in records),
         "files": records,
@@ -120,8 +129,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("release", type=Path)
     parser.add_argument("--archive", type=Path)
+    parser.add_argument('--no-game-assets', action='store_true')
     args = parser.parse_args()
-    manifest = verify_release(args.release)
+    manifest = verify_release(args.release, no_game_assets=args.no_game_assets)
     output = args.release / "release-manifest.json"
     output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"发布校验通过：{manifest['fileCount']} 个文件，{manifest['totalBytes']} 字节")

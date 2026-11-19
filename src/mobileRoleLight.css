@@ -1,0 +1,103 @@
+/* One-page comparison only: private-role + character tab + mobile. */
+.nm-shell.nm-role-light:not(.nd-shell) {
+  --nm-role-panel: rgba(44,32,33,.78);
+  --nm-role-muted: #f1e3c9;
+  --nm-role-edge: rgba(219,181,116,.55);
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-character-head.nm-neutral-head {
+  min-height: 0;
+  padding: 18px 20px 0;
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-head > div.nm-character-identity {
+  padding: 14px 16px 8px;
+  background: var(--nm-role-panel);
+  border: 0;
+  border-image: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-head p,
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-head .nm-level span { color: var(--nm-role-muted); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-resources {
+  margin: 0 20px 14px;
+  padding: 0 16px 14px;
+  gap: 24px;
+  background: var(--nm-role-panel);
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-resources > div {
+  padding: 8px 0;
+  border: 0;
+  border-image: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-resources small { color: var(--nm-role-muted); font-size: 11px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-resources strong { color: #fff2d4; font-size: 17px; line-height: 24px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attributes,
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page > .nm-section {
+  margin: 14px 20px;
+  padding: 18px;
+  background: var(--nm-role-panel);
+  border: 1px solid var(--nm-role-edge);
+  border-image: none;
+  position: relative;
+  border-radius: 0;
+  box-shadow: none;
+}
+/* Keep native corners square and uniformly scaled; fade only the edge pixels,
+   while the warm 1px line remains visible beneath them. Never fill the center. */
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attributes::after,
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page > .nm-section::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid transparent;
+  border-image-source: var(--nm-frameMajor);
+  border-image-slice: 32;
+  border-image-width: 2px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  opacity: .30;
+  pointer-events: none;
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page h2 { line-height: 27px; margin-bottom: 12px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attribute-grid { gap: 10px 12px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attribute {
+  width: auto;
+  height: auto;
+  min-height: 52px;
+  padding: 4px 0;
+  gap: 4px;
+  border: 0;
+  border-image: none;
+  background: transparent;
+  box-shadow: none;
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attribute b { color: var(--nm-role-muted); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attribute strong { color: #fff2d4; font-size: 20px; line-height: 26px; max-width: 100%; overflow-wrap: anywhere; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-summary { padding: 0; border: 0; border-image: none; background: transparent; box-shadow: none; gap: 4px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-summary > div { padding: 6px 0; min-height: 28px; font-size: 13px; line-height: 18px; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-summary dt { color: var(--nm-role-muted); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-summary dd { color: #fff2d4; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-stat-badge { background: transparent; padding: 0; color: var(--nm-role-muted); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-values > div { padding: 8px 0; background: transparent; border: 0; box-shadow: none; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-values dt small { color: var(--nm-role-muted); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-values dd { color: #fff2d4; }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-note {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  border-image: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--nm-role-muted);
+}
+.nm-shell.nm-role-light:not(.nd-shell) .nm-historical-reference { margin: 14px 20px 0; padding: 14px 16px; background: var(--nm-role-panel); color: #fff2d4; border-left: 2px solid rgba(219,181,116,.55); }
+.nm-shell.nm-role-light:not(.nd-shell) .nm-historical-reference p { margin-top: 6px; font-size: 12px; line-height: 18px; color: var(--nm-role-muted); overflow-wrap: anywhere; }
+@media (max-width: 360px) {
+  .nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-attributes,
+  .nm-shell.nm-role-light:not(.nd-shell) .nm-character-page > .nm-section { padding: 14px; }
+  .nm-shell.nm-role-light:not(.nd-shell) .nm-character-page .nm-resources { gap: 12px; }
+}

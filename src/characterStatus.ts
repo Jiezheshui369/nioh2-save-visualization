@@ -1,6 +1,7 @@
 /** Observed game-panel values are evidence, not parser output or a damage formula. */
 export interface StatusEntry {
   label: string;
+  /** null records absence of a displayed numeric value; it does not prove activation. */
   value: string | null;
   pages: number[];
 }

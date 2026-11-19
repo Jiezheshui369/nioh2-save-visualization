@@ -816,3 +816,10 @@ footer svg { width: 15px; } footer i { flex: 1; }
 .sync-panel summary { padding: 12px 0; cursor: pointer; }
 .sync-panel [role=alert] { color: #ffad98; }
 .sync-qr { display: block; max-width: 100%; width: 280px; margin: 20px 0; }
+
+.experimental-scroll-panel header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.experimental-scroll-panel header label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.experimental-scroll-panel header input { width: 18px; height: 18px; accent-color: var(--accent, #b99b60); }
+.experimental-scroll-panel p { line-height: 1.7; overflow-wrap: anywhere; }
+.experimental-scroll-candidate { margin: 16px 0; padding: 16px; border: 1px solid rgba(185, 155, 96, .35); border-radius: 12px; }
+.experimental-scroll-candidate h3 { margin: 10px 0; }

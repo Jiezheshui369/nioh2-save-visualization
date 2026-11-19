@@ -7,7 +7,7 @@ import urllib.request
 import json
 
 from agent.nioh2_agent import create_http_server
-from desktop_window import LOCALIZATION, WindowService, run_window
+from desktop_window import LOCALIZATION, WINDOW_ICON, WindowService, run_window
 from desktop_launcher import build_parser, main
 
 
@@ -22,7 +22,7 @@ class DesktopWindowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             run_window(s, Path(d), backend=ui)
             ui.start.assert_called_once_with(gui='edgechromium', private_mode=False,
-                storage_path=str(Path(d) / 'webview-profile'), debug=False, localization=LOCALIZATION)
+                storage_path=str(Path(d) / 'webview-profile'), debug=False, localization=LOCALIZATION, icon=str(WINDOW_ICON))
             self.assertNotIn('js_api', ui.create_window.call_args.kwargs)
             self.assertEqual('http://127.0.0.1:13254/', ui.create_window.call_args.args[1])
             ui.settings.__setitem__.assert_any_call('ALLOW_FILE_URLS', False)
@@ -38,6 +38,29 @@ class DesktopWindowTests(unittest.TestCase):
         s.shutdown.assert_called_once()
         s.server_close.assert_called_once()
         s.RequestHandlerClass.mobile_sync.stop.assert_called_once()
+
+    def test_existing_runtime_host_is_owned_and_stops_on_failure(self):
+        s = self.server()
+        with tempfile.TemporaryDirectory() as d, patch('desktop_window.subprocess.run') as launch:
+            launch.return_value.returncode = 1
+            with self.assertRaises(RuntimeError):
+                run_window(s, Path(d), edge_runtime=Path(d) / 'runtime', self_test=True)
+            command = launch.call_args.args[0]
+            self.assertIn('-STA', command)
+            self.assertIn('-ResultFile', command)
+            self.assertIn('http://127.0.0.1:13254/', command)
+        s.shutdown.assert_called_once()
+        s.server_close.assert_called_once()
+
+    def test_native_self_test_failure_closes_window_and_owned_service(self):
+        s, ui = self.server(), MagicMock()
+        ui.start.side_effect = lambda **options: options['func']()
+        with tempfile.TemporaryDirectory() as d, patch('desktop_self_test.verify_window', side_effect=RuntimeError('verification failed')):
+            with self.assertRaisesRegex(RuntimeError, 'verification failed'):
+                run_window(s, Path(d), backend=ui, self_test=True)
+        ui.create_window.return_value.destroy.assert_called_once()
+        s.shutdown.assert_called_once()
+        s.server_close.assert_called_once()
 
     def test_window_creation_failure_also_stops_service(self):
         s, ui = self.server(), MagicMock()

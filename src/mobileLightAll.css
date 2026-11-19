@@ -1,0 +1,98 @@
+/* private-light mobile pages only. Character retains the accepted role stylesheet. */
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) {
+  --nm-light-panel: rgba(44,32,33,.78);
+  --nm-light-muted: #f1e3c9;
+  --nm-light-edge: rgba(219,181,116,.55);
+  --nm-light-divider: rgba(219,181,116,.18);
+}
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-loadout-overview,.nm-loadout-list,.nm-warehouse,.nm-filter,.nm-detail-overview,.nm-effect-panel,.nm-more,.nm-state-card,.nm-saving-state,.build-library-intro,.build-capture,.build-card-list,.saved-build-detail,.build-library-empty) {
+  position: relative;
+  background: var(--nm-light-panel);
+  border: 1px solid var(--nm-light-edge);
+  border-image: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: #fff2d4;
+}
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-loadout-overview,.nm-loadout-list,.nm-warehouse,.nm-filter,.nm-detail-overview,.nm-effect-panel,.nm-more,.nm-state-card,.nm-saving-state,.build-library-intro,.build-capture,.build-card-list,.saved-build-detail,.build-library-empty)::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  width: auto;
+  height: auto;
+  background: none;
+  border: 1px solid transparent;
+  border-image-source: var(--nm-frameMajor);
+  border-image-slice: 32;
+  border-image-width: 2px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  opacity: .30;
+  pointer-events: none;
+}
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-loadout-overview { margin: 16px 20px 14px; padding: 18px; display: grid; gap: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-loadout-overview :is(.nm-build-head,.nm-build-head > div,.nm-build-head > p,.nm-set-grid,.nm-set-grid > div) { padding: 0; margin: 0; background: transparent; border: 0; border-image: none; box-shadow: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-build-head h1 { font-size: 24px; line-height: 36px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-set-grid { gap: 12px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-set-grid > div { display: grid; gap: 5px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-loadout-list { margin: 0 20px 20px; padding: 4px 16px 16px; gap: 8px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-warehouse { margin: 14px 20px 20px; padding: 16px; gap: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-warehouse-content { gap: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-filter { margin: 16px 20px 20px; padding: 16px; gap: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-list-heading,.nm-filter h2,.nm-filter > .nm-note) { background: transparent; padding: 0; border: 0; border-image: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-equipment-row,.nm-equipment-row.nm-equipped,.nm-inventory-row,.nm-icon-slot) { background: transparent; border: 0; border-image: none; border-radius: 0; box-shadow: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-equipment-row,.nm-inventory-row) { border-bottom: 1px solid var(--nm-light-divider); padding: 12px 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-equipment-row.nm-compact { padding: 10px 0; min-height: 68px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-inventory-copy { flex: 1; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-item-meta,.nm-item-copy small,.nm-inventory-row small,.nm-list-heading small,.nm-set-grid small,.nm-build-head p) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-set-grid b,.nm-inventory-row b,.nm-inventory-row strong) { color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(input:not([type=file]),textarea,select) { background: rgba(247,218,164,.06); color: #fff2d4; border-color: rgba(219,181,116,.35); border-radius: 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(input,textarea)::placeholder { color: var(--nm-light-muted); opacity: 1; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-filter-bar button,.nm-filter-grid button,.nm-two-buttons > button:not(.nm-primary),.nm-back) { background: transparent; color: #fff2d4; border: 1px solid rgba(219,181,116,.35); border-image: none; border-radius: 0; min-height: 44px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-filter-grid button[aria-pressed=true] { background: #963c2b; color: #fff2d4; border-color: #c9805c; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-primary { color: #fff2d4; background: #963c2b; border-color: #c9805c; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible) { outline: 2px solid #f4deb0; outline-offset: 2px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail { padding: 16px 20px 24px; gap: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail > button.nm-back { background: var(--nm-light-panel); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-detail-overview,.nm-effect-panel) { padding: 18px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail-overview .nm-detail-card { padding: 0; border: 0; border-image: none; background: transparent; border-radius: 0; backdrop-filter: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail-card::before,
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail-card::after { content: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-summary,.nm-values,.nm-values > div,.nm-note,.nm-unresolved-scroll) { background: transparent; border: 0; border-image: none; box-shadow: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-values > div { padding: 9px 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-note,.nm-unresolved-scroll,.nm-detail-name p,.nm-detail-card > p,.nm-values dt small,.nm-more p,.nm-source-values dt,.nm-more-menu small) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-detail-overview > .nm-note { padding: 0; margin-top: 14px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-unresolved-scroll { margin: 0 0 14px; padding: 0; color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-values dd,.nm-source-values dd) { color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more { margin: 16px 20px 24px; padding: 18px; gap: 18px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more :is(.nm-state-card,.nm-more-heading,.nm-import-intro,.nm-backup-options,.sync-panel,.nm-more-menu > button) { padding: 0; border: 0; border-image: none; border-radius: 0; background: transparent; box-shadow: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more .nm-state-card::after { content: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more-pages { gap: 18px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more .nm-state-card + .nm-state-card { padding-top: 18px; border-top: 1px solid var(--nm-light-divider); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more-menu > button { min-height: 72px; padding: 12px 0; border-bottom: 1px solid var(--nm-light-divider); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-source-values > div { border-bottom-color: var(--nm-light-divider); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-more .nm-note { padding: 0; margin: 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-import-steps > div { padding: 10px 0; background: transparent; border: 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-import-brand > span { background: transparent; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-import-scene { background: transparent; border: 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-import-intro > p,.nm-more-heading p,.nm-state-card p,.nm-import-steps span) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds :is(.build-capture-summary,.build-capture-form,.build-card-list > header,.build-card-list > button,.saved-build-stats,.saved-build-stats > span,.saved-build-sets,.saved-build-equipment > div) { background: transparent; border-image: none; border-color: var(--nm-light-divider); box-shadow: none; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-card-list > button.active { background: rgba(239,129,94,.12); border-left-color: #ef815e; color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds :is(.build-card-list small,.build-card-list button > span,.saved-build-detail p,.saved-build-equipment span,.saved-build-stats small) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .saved-build-sets :is(span,b,i,strong) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-capture-summary i { color: var(--nm-light-muted); border: 0; background: transparent; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds :is(.saved-build-detail > header span,.saved-build-equipment small) { color: var(--nm-light-muted); }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .saved-build-detail > header > b { color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-library-intro h1 { font-family: var(--nm-title-font); font-size: 24px; line-height: 36px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-capture-summary > strong { font-family: var(--nm-title-font); font-size: 18px; line-height: 27px; font-weight: 600; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-capture-summary { min-height: 0; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-capture-form textarea { font-family: inherit; font-size: 13px; line-height: 18.2px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .nm-legacy-builds .build-library-empty { padding: 24px 16px; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-filter h2,.nm-import-scene strong,.nm-more-actions > button,.build-library-empty strong) { color: #fff2d4; }
+.nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) .build-library-empty p { color: var(--nm-light-muted); }
+@media (max-width: 360px) {
+  .nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-loadout-overview,.nm-detail-overview,.nm-effect-panel,.nm-more) { padding: 14px; }
+  .nm-shell.nm-light-all:not(.nd-shell):not(.nm-role-light) :is(.nm-warehouse,.nm-filter) { padding: 12px; }
+}

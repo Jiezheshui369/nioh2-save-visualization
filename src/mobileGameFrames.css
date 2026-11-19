@@ -1,0 +1,47 @@
+/* Original game edges only. 32/16 are inspected slice choices, not game layout constants. */
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-attributes,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-character-page > .nm-section,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-detail-card,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-effect-panel,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-state-card,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-import-intro,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-legacy-builds .build-library-intro,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-legacy-builds .build-capture,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-legacy-builds .saved-build-detail {
+  border: 1px solid var(--nm-border);
+  border-image-source: var(--nm-frameMajor);
+  border-image-slice: 32;
+  border-image-width: 10px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  background-clip: padding-box;
+}
+/* Match the color header rule's specificity so its border shorthand cannot reset the image. */
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-character-head > div.nm-character-identity,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-resources > div,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-attribute,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-equipment-row,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-inventory-row,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-list-heading,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-detail > .nm-note,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-character-page > .nm-note,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-more-heading,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-backup-options,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-more-menu > button,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-filter h2,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-legacy-builds .build-card-list > header,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-legacy-builds .build-card-list > button {
+  border: 1px solid var(--nm-border);
+  border-image-source: var(--nm-frameMinor);
+  border-image-slice: 16;
+  border-image-width: 5px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  background-clip: padding-box;
+}
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-summary::before,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-summary::after,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-detail-card::before,
+.nm-shell.nm-game-frames:not(.nd-shell) .nm-detail-card::after { content: none; }

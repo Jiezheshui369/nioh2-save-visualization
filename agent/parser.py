@@ -12,7 +12,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-PARSER_VERSION = "0.9.9"
+from agent.effect_catalog import build_effect_lookup, effect_translation_lookup
+
+PARSER_VERSION = "0.9.14-skills1"
 EFFECT_VALUE_RULES = json.loads((Path(__file__).parent / "data" / "effect_value_rules.json").read_text(encoding="utf-8"))
 MIN_SAVE_SIZE = 0x294080
 LOADOUT_NAME_OFFSET = 0x213BA8
@@ -134,7 +136,7 @@ def _load_effects(path: Path) -> dict[str, dict[str, Any]]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
         raise ValueError("effects.json 格式错误")
-    return {str(item.get("id", "")).upper(): item for item in raw if item.get("id")}
+    return build_effect_lookup(raw)
 
 
 def _load_zh_names(items_path: Path) -> dict[str, str]:
@@ -165,12 +167,12 @@ def _load_zh_effects(effects_path: Path) -> dict[str, str]:
         return {}
     raw = json.loads(path.read_text(encoding="utf-8"))
     effects = raw.get("effects", {}) if isinstance(raw, dict) else {}
-    names = {str(key).upper(): str(value) for key, value in effects.items()}
+    names = effect_translation_lookup(effects)
     overlay_path = effects_path.parent / "verified_effect_templates_zh_cn.json"
     if overlay_path.exists():
         overlay_raw = json.loads(overlay_path.read_text(encoding="utf-8"))
         overlay = overlay_raw.get("effects", {}) if isinstance(overlay_raw, dict) else {}
-        names.update({str(key).upper(): str(value) for key, value in overlay.items()})
+        names.update(effect_translation_lookup(overlay))
     return names
 
 
@@ -382,7 +384,8 @@ def _scroll_records(
     return records
 
 
-def parse_bytes(data: bytes, items_path: Path, effects_path: Path) -> dict[str, Any]:
+def parse_bytes(data: bytes, items_path: Path, effects_path: Path, *,
+                include_experimental_scroll_selection: bool = False) -> dict[str, Any]:
     if len(data) < MIN_SAVE_SIZE:
         raise ValueError(f"文件过小，不像已解密的 PC SAVEDATA.BIN：{len(data)} bytes")
 
@@ -422,7 +425,7 @@ def parse_bytes(data: bytes, items_path: Path, effects_path: Path) -> dict[str, 
         if key == "Unknown":
             unknown_ids += 1
 
-    return {
+    parsed = {
         "character": {
             "level": values["level"],
             "amrita": values["amrita"],
@@ -447,6 +450,10 @@ def parse_bytes(data: bytes, items_path: Path, effects_path: Path) -> dict[str, 
             "scrollRecordsDetected": len(scroll_records),
         },
     }
+    if include_experimental_scroll_selection:
+        from agent.scroll_selection import inspect_scroll_selection
+        parsed["experimentalScrollSelection"] = inspect_scroll_selection(data, items)
+    return parsed
 
 
 def parse_decrypted_file(
@@ -455,6 +462,7 @@ def parse_decrypted_file(
     items_path: Path,
     effects_path: Path,
     original_sha256: str | None = None,
+    *, include_experimental_scroll_selection: bool = False, paired_system_path: Path | None = None,
 ) -> dict[str, Any]:
     input_path = input_path.resolve()
     snapshot_root = snapshot_root.resolve()
@@ -462,11 +470,19 @@ def parse_decrypted_file(
         raise ValueError("解析输入必须位于明确指定的快照根目录内。")
     with input_path.open("rb") as stream:
         data = stream.read()
-    parsed = parse_bytes(data, items_path, effects_path)
+    from agent.research_status import validate_container, derive_status
+    validate_container(data)
+    parsed = parse_bytes(data, items_path, effects_path,
+                         include_experimental_scroll_selection=include_experimental_scroll_selection)
+    parsed["researchStatus"] = derive_status(data, paired_system_path=paired_system_path)
+    from agent.titles import derive_titles
+    parsed["titles"] = derive_titles(data)
+    from agent.skills import derive_skills
+    parsed["skills"] = derive_skills(data)
     copy_hash = hashlib.sha256(data).hexdigest().upper()
     modified = datetime.fromtimestamp(input_path.stat().st_mtime, tz=timezone.utc).isoformat()
     return {
-        "schemaVersion": "0.9.6-research",
+        "schemaVersion": "0.9.8-research",
         "parserVersion": PARSER_VERSION,
         "game": "Nioh 2 - The Complete Edition",
         "platform": "Steam/Windows",
@@ -481,7 +497,7 @@ def parse_decrypted_file(
         },
         **parsed,
         "limitations": [
-            "Character name, guardian spirits, skill trees, mission progress, collectibles and clan/faction have not yet been mapped.",
+            "Character name, mission progress, collectibles and live clan/guardian activation remain unmapped. skills separately binds 887 static menu nodes to saved learning/rank records; live purchase/visibility/quest/DLC eligibility remains unknown. researchStatus separately labels bounded ordinary source projections; guardian fixed entries and soul-core instances are distinct sources.",
             "Item identifiers come from a community Apache-2.0 table; matched display names come from the local game language packs.",
             "Effect values retain raw evidence. Conditions and non-numeric effects are not bonuses; unresolved grades and units are omitted. Legacy CAP-based units require verification. Equipment values are not final character totals.",
             "Fixed offsets are research findings and require validation against more save versions.",

@@ -30,7 +30,7 @@ function summary(title: string, level: number, attributes: Record<AttributeKey, 
     ...(rows.length ? rows : ['尚无已解析的装备槽记录。']), '',
     '佩戴绘卷尚未识别；仓库绘卷不代表已装备。',
     '仅展示记录中的装备词条，不推算最终伤害或套装触发档位。',
-    '由 Nioh 存档伴侣在设备本地生成。'].join('\n');
+    '由 存档资产 Save Asset在设备本地生成。'].join('\n');
 }
 
 // Explicit display projection: no automatic snapshot ID, fingerprint, paths, currency or inventory.

@@ -1,10 +1,15 @@
 {
   "name": "nioh2-save-companion",
-  "version": "0.7.16-dev",
+  "version": "0.7.29-research1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:private-visual": "vite --mode private-visual --host 127.0.0.1",
+    "build:private-visual": "tsc -b && vite build --mode private-visual",
+    "preview:private-visual": "node scripts/private-mobile-preview.mjs",
+    "start:private-mobile": "node scripts/start-private-mobile.mjs",
+    "test:private-visual": "node --test scripts/private-visual-assets.test.mjs scripts/private-mobile-preview.test.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",

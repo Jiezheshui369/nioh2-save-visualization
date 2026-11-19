@@ -91,12 +91,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-browser", action="store_true", help="不自动打开浏览器")
     parser.add_argument("--data-dir", type=Path, help="覆盖应用数据目录（用于便携版或测试）")
     parser.add_argument("--source", type=Path, help="明确指定只读存档源目录")
+    parser.add_argument("--edge-runtime", type=Path, help="显式复用已有WebView2 .NET程序集目录；不安装依赖")
+    parser.add_argument("--window-self-test", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument('--remote-mvp-enable', action='store_true', help='Enable native remote MVP with an existing device vault')
+    parser.add_argument('--remote-mvp-provision-key', action='store_true', help='Explicitly provision the current user device key after verified native login')
+    parser.add_argument("--window-self-test-save", type=Path, help=argparse.SUPPRESS)
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.window_self_test_save and not args.window_self_test:
+        raise ValueError('Save self-test requires explicit window self-test mode')
     native_window = not (args.browser or args.no_browser or args.lan)
+    if args.remote_mvp_provision_key and not args.remote_mvp_enable:
+        raise ValueError('Native device provisioning requires --remote-mvp-enable')
+    if (args.remote_mvp_enable or args.remote_mvp_provision_key) and not native_window:
+        raise ValueError('Remote MVP switches require the native desktop window')
     url = f"http://127.0.0.1:{args.port}/"
     if port_is_open(args.port):
         if native_window:
@@ -133,6 +144,10 @@ def main() -> int:
     print("仁王2存档伴侣桌面版 · 只读模式")
     print(f"结构化快照目录：{store}")
     server_options = dict(
+        native_auth_enabled=native_window,
+        native_remote_enabled=native_window and args.remote_mvp_enable,
+        native_remote_provision=native_window and args.remote_mvp_provision_key,
+        native_remote_directory=data_root / 'native-remote',
         store=store,
         host=host,
         port=args.port,
@@ -144,7 +159,7 @@ def main() -> int:
     )
     if native_window:
         from desktop_window import run_window
-        run_window(create_http_server(**server_options), data_root)
+        run_window(create_http_server(**server_options), data_root, edge_runtime=args.edge_runtime, self_test=args.window_self_test, self_test_save=args.window_self_test_save)
     else:
         serve(**server_options)
     return 0
@@ -160,11 +175,11 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except Exception as exc:
-        if os.name == 'nt':
+        if os.name == 'nt' and '--window-self-test' not in sys.argv:
             import ctypes
             ctypes.windll.user32.MessageBoxW(None,
                 f"无法启动独立窗口：{exc}\n\n请确认已安装 Microsoft Edge WebView2 Runtime。\n也可使用 Start-Browser-Mode.cmd 兼容模式；不要卸载或删除已有资料。",
-                'Nioh 存档伴侣 · 启动失败', 0x10)
+                '存档资产 Save Asset · 启动失败', 0x10)
         else:
             print(str(exc), file=sys.stderr)
         raise SystemExit(1)

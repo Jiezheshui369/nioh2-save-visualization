@@ -1,0 +1,12 @@
+.game-bitmap-text { position:relative; display:inline-block; max-width:100%; white-space:pre; vertical-align:baseline; }
+.game-bitmap-text canvas { display:none; pointer-events:none; }
+.game-bitmap-text[data-bitmap-state="bitmap"] .game-bitmap-readable { position:absolute; inset:0; color:transparent; user-select:text; }
+.game-bitmap-text[data-bitmap-state="bitmap"] canvas { display:block; }
+.game-bitmap-fallback { margin-left:2px; color:#efbe75; font:9px/1 sans-serif; }
+
+/* Existing game layouts style descendant spans; isolate renderer internals. */
+.game-bitmap-text { font-size:inherit !important; font-family:inherit !important; font-weight:inherit !important; line-height:inherit !important; color:inherit !important; background:none !important; border:0 !important; padding:0 !important; margin:0 !important; display:inline-block !important; min-width:0 !important; }
+.game-bitmap-text[data-bitmap-state="bitmap"] > .game-bitmap-readable { color:transparent !important; -webkit-text-fill-color:transparent !important; }
+
+/* Transparent selectable fallback glyph widths must not widen scroll regions. */
+.game-bitmap-text[data-bitmap-state="bitmap"] > .game-bitmap-readable { overflow:hidden; }

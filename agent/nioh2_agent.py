@@ -34,6 +34,7 @@ from urllib.parse import unquote, urlparse
 from agent.binary_diff import change_summary
 from agent.parser import parse_decrypted_file
 from agent.mobile_sync import MobileSync, MAX_ARCHIVE
+from agent.publication_store import record_parsed_snapshot, publication_receipt, read_remote_publication, RemotePublicationNotReady
 
 APP_NAME = "Nioh2SaveCompanion"
 DEFAULT_PORT = 13252
@@ -87,14 +88,46 @@ class CopiedFile:
     source_last_write_utc: str
 
 
+def _snapshot_source_root(source: Path) -> Path:
+    """Keep selected-slot and same-account system copies under one stable root."""
+    if source.is_file():
+        return source.parent
+    if re.fullmatch(r"SAVEDATA[0-9]+", source.name, re.IGNORECASE):
+        return source.parent
+    return source
+
+
+def _selected_slot_files(source: Path) -> list[Path] | None:
+    """Only this slot's fixed files plus its exact same-parent system input.
+
+    Do not enumerate another slot/account or follow a system reparse target.
+    File uploads remain file-only, even when a sibling system happens to exist.
+    """
+    if not source.is_dir() or not re.fullmatch(r"SAVEDATA[0-9]+", source.name, re.IGNORECASE):
+        return None
+    candidates = []
+    for name in sorted(SAVE_NAMES | {"steam_autocloud.vdf"}):
+        path = source / name
+        if path.resolve() == path and path.is_file():
+            candidates.append(path)
+    account = source.parent
+    system_directory = account / "SYSTEMSAVEDATA00"
+    system = system_directory / "SAVEDATA.BIN"
+    if system_directory.resolve() == system_directory and system.resolve() == system and system.is_file():
+        candidates.append(system)
+    return candidates
+
+
 def snapshot_save(source: Path, workspace: Path) -> Path:
     source = source.resolve()
     workspace = workspace.resolve()
     if not source.exists():
         raise FileNotFoundError(source)
-    ensure_separate(source, workspace)
+    source_root = _snapshot_source_root(source)
+    ensure_separate(source_root, workspace)
 
-    candidates = [source] if source.is_file() else [p for p in source.rglob("*") if p.is_file()]
+    selected_files = _selected_slot_files(source)
+    candidates = selected_files if selected_files is not None else ([source] if source.is_file() else [p for p in source.rglob("*") if p.is_file()])
     candidates = [p for p in candidates if p.name in SAVE_NAMES or p.name == "steam_autocloud.vdf"]
     if not candidates:
         raise ValueError("没有找到 SAVEDATA.BIN、BACKUP.BIN 或 steam_autocloud.vdf。")
@@ -109,7 +142,6 @@ def snapshot_save(source: Path, workspace: Path) -> Path:
         raise FileExistsError(final_dir)
 
     copied: list[CopiedFile] = []
-    source_root = source if source.is_dir() else source.parent
     final_dir.mkdir(parents=False, exist_ok=False)
     incomplete = final_dir / ".incomplete"
     incomplete.write_text("Snapshot creation is in progress.", encoding="utf-8")
@@ -140,6 +172,11 @@ def snapshot_save(source: Path, workspace: Path) -> Path:
             "snapshotId": snapshot_id,
             "createdAtUtc": datetime.now(timezone.utc).isoformat(),
             "source": str(source),
+            "selection": {
+                "kind": "selected-character-slot" if selected_files is not None else "explicit-file-or-directory",
+                "selectedSlot": source.name if selected_files is not None else None,
+                "pairedSystemRelativePath": "SYSTEMSAVEDATA00/SAVEDATA.BIN" if selected_files is not None and any(p.parent.name == "SYSTEMSAVEDATA00" for p in selected_files) else None,
+            },
             "policy": {"sourceOpenedReadOnly": True, "parsedFromCopyOnly": True, "writeBackSupported": False},
             "files": [item.__dict__ for item in copied],
         }
@@ -228,9 +265,12 @@ def parse_and_store(
     original_last_write_local: str | None = None,
     backup_original_last_write_local: str | None = None,
     source_verifier: Callable[[], None] | None = None,
+    include_experimental_scroll_selection: bool = False,
+    paired_system_path: Path | None = None,
 ) -> Path:
     input_hash_before = sha256(input_path)
-    data = parse_decrypted_file(input_path, snapshot_root, items_path, effects_path, original_sha256)
+    data = parse_decrypted_file(input_path, snapshot_root, items_path, effects_path, original_sha256,
+                                include_experimental_scroll_selection=include_experimental_scroll_selection, paired_system_path=paired_system_path)
     if original_last_write_local is not None:
         data["sourceLastWriteLocal"] = original_last_write_local
     normalized_label = normalize_research_label(research_label)
@@ -279,6 +319,10 @@ def parse_and_store(
     temporary = target.with_suffix(".tmp")
     temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(temporary, target)
+    try:
+        record_parsed_snapshot(store, data)
+    except Exception as exc:
+        raise RuntimeError("规范快照已保存，但同步发布记录准备失败；尚未发送到手机。") from exc
     return target
 
 
@@ -295,9 +339,14 @@ def _verify_snapshot_manifest(snapshot_dir: Path) -> dict[str, Any]:
 def _verify_original_manifest(source: Path, manifest: dict[str, Any]) -> None:
     """Recheck original files read-only immediately before publishing a result."""
     resolved = source.resolve()
-    source_root = resolved if resolved.is_dir() else resolved.parent
+    source_root = _snapshot_source_root(resolved)
+    selected = manifest.get("selection", {}).get("kind") == "selected-character-slot"
+    if selected and resolved != Path(manifest["source"]):
+        raise RuntimeError("Selected source directory changed during parsing")
     for item in manifest["files"]:
         original = source_root / item["relative_path"]
+        if selected and original.resolve() != original:
+            raise RuntimeError("Selected source input changed to a reparse target")
         if not original.is_file() or sha256(original) != item["source_sha256"]:
             raise RuntimeError(f"读取期间原始存档发生变化，已停止发布快照：{item['relative_path']}")
 
@@ -310,6 +359,7 @@ def run_pipeline(
     items_path: Path,
     effects_path: Path,
     research_label: str | None = None,
+    additional_source_verifier: Callable[[], None] | None = None,
 ) -> Path:
     """Snapshot, decrypt and parse while preserving a verifiable read-only chain."""
     decryptor = decryptor.resolve()
@@ -356,6 +406,14 @@ def run_pipeline(
             (item for item in manifest["files"] if item["relative_path"].replace("\\", "/") == backup_relative.replace("\\", "/")),
             None,
         )
+    def verify_before_store() -> None:
+        _verify_snapshot_manifest(snapshot_dir)
+        _verify_original_manifest(source, manifest)
+        if additional_source_verifier is not None:
+            additional_source_verifier()
+
+    system_candidates = [p for p in snapshot_dir.rglob("SAVEDATA.BIN") if p.parent.name.upper() == "SYSTEMSAVEDATA00"]
+    paired_system = system_candidates[0] if len(system_candidates) == 1 else None
     return parse_and_store(
         main_candidates[0],
         backup,
@@ -367,15 +425,20 @@ def run_pipeline(
         research_label,
         original_record.get("source_last_write_utc") if original_record else None,
         backup_record.get("source_last_write_utc") if backup_record else None,
-        lambda: _verify_original_manifest(source, manifest),
+        verify_before_store,
+        paired_system_path=paired_system,
     )
 
 
 def latest_snapshot(store: Path) -> dict[str, Any]:
     files = sorted(store.glob("*.json"), key=lambda path: path.stat().st_mtime_ns, reverse=True)
     if not files:
-        raise FileNotFoundError("尚无结构化快照。请先执行 import-json。")
-    return json.loads(files[0].read_text(encoding="utf-8-sig"))
+        raise FileNotFoundError("尚无结构化快照。请在电脑应用拖入 SAVEDATA.BIN。")
+    snapshot = json.loads(files[0].read_text(encoding="utf-8-sig"))
+    receipt = publication_receipt(store, snapshot.get("snapshotId", ""))
+    if receipt:
+        snapshot["localPublication"] = receipt
+    return snapshot
 
 
 def list_snapshots(store: Path) -> list[dict[str, Any]]:
@@ -613,6 +676,84 @@ def local_pairing_urls(port: int, access_token: str) -> list[str]:
 
 class ApiHandler(BaseHTTPRequestHandler):
     mobile_sync: MobileSync | None = None
+    native_auth = None
+
+    def _prepare_local_data_scope(self, path: str) -> bool:
+        # A handler can serve more than one request: always reset to class-owned legacy roots.
+        if hasattr(type(self), 'store'):
+            self.store = type(self).store
+        defaults = getattr(type(self), 'pipeline_defaults', None)
+        config = getattr(type(self), 'pipeline_config', None)
+        self.pipeline_defaults = dict(defaults) if defaults is not None else None
+        self.pipeline_config = dict(config) if config is not None else None
+        self._local_account_scoped = False
+        scopes = self._header_values('X-SaveAsset-Local-Scope')
+        sessions = self._header_values('X-SaveAsset-Local-Session')
+        if not scopes and not sessions:
+            return True  # Existing loopback/LAN clients keep their explicit legacy API.
+        allowed = path in {'/api/health', '/api/sources', '/api/refresh', '/api/import-save', '/api/snapshots', '/api/publications/latest'} or path.startswith('/api/snapshots/')
+        if not allowed or len(scopes) != 1 or len(sessions) != 1 or any(re.fullmatch(r'[0-9a-f]{64}', value, flags=re.ASCII) is None for value in scopes + sessions):
+            self._json(HTTPStatus.BAD_REQUEST, {'error': 'LOCAL_DATA_CONTEXT_INVALID'})
+            return False
+        if not self._desktop_sync_allowed() or self.native_auth is None:
+            self._json(HTTPStatus.FORBIDDEN, {'error': 'LOCAL_DATA_CONTEXT_UNAVAILABLE'})
+            return False
+        context = self.native_auth.local_data_context()
+        if not context or not hmac.compare_digest(scopes[0], context['localDataScope']) or not hmac.compare_digest(sessions[0], context['localDataSessionId']):
+            self._json(HTTPStatus.FORBIDDEN, {'error': 'LOCAL_DATA_CONTEXT_CHANGED'})
+            return False
+        if not hasattr(type(self), 'store'):
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {'error': 'LOCAL_DATA_STORE_UNAVAILABLE'})
+            return False
+        self._local_account_scoped = True
+        self.store = self.store / 'accounts' / scopes[0]
+        if self.pipeline_defaults and self.pipeline_defaults.get('snapshot_workspace') is not None:
+            workspace = self.pipeline_defaults['snapshot_workspace'] / 'accounts' / scopes[0]
+            self.pipeline_defaults['snapshot_workspace'] = workspace
+            if self.pipeline_config is not None:
+                self.pipeline_config['snapshot_workspace'] = workspace
+        return True
+
+    def _native_remote(self, action):
+        if not self._desktop_sync_allowed() or urlparse(self.path).query:
+            self._json(HTTPStatus.FORBIDDEN, {'error': 'native_remote_forbidden'})
+            return
+        if self.native_auth is None:
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {'state': 'unconfigured', 'enabled': False, 'reason': 'NATIVE_WINDOW_REQUIRED', 'pending': []})
+            return
+        try:
+            raw = b'' if self.command == 'GET' else self._request_body(4096, allow_missing=True)
+            value = json.loads(raw) if raw else {}
+            if not isinstance(value, dict):
+                raise ValueError('INVALID_REQUEST')
+            self._json(HTTPStatus.OK, self.native_auth.remote_action(action, value))
+        except Exception:
+            self._json(HTTPStatus.BAD_REQUEST, {'state': 'error', 'enabled': False, 'reason': 'NATIVE_REMOTE_FAILED', 'pending': []})
+
+    def _native_account(self, action: str) -> None:
+        # Native-window-only controller; no OAuth tokens cross this HTTP boundary.
+        if not self._desktop_sync_allowed() or urlparse(self.path).query:
+            self._json(HTTPStatus.FORBIDDEN, {"error": "native_account_forbidden"})
+            return
+        if self.native_auth is None:
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"state": "unavailable", "error": "native_window_required"})
+            return
+        if action not in {"status", "login", "cancel", "logout"}:
+            self._json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+            return
+        try:
+            if self.command == "POST" and self._request_body(0, allow_missing=True):
+                raise ValueError("unexpected_body")
+            if action == "login":
+                self.native_auth.start_login()
+            elif action == "cancel":
+                self.native_auth.cancel()
+            elif action == "logout":
+                self.native_auth.logout()
+            self._json(HTTPStatus.OK, self.native_auth.status())
+        except Exception:
+            # SDK/network exceptions may contain authorization codes or tokens.
+            self._json(HTTPStatus.BAD_REQUEST, {"error": "native_account_failed"})
 
     def _header_values(self, name: str) -> list[str]:
         # HTTPMessage preserves duplicate headers; do not silently use the first.
@@ -666,6 +807,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                 output = run_pipeline(source=staged, store=self.store, **self.pipeline_defaults)
                 result = json.loads(output.read_text(encoding="utf-8-sig"))
                 result["inputMethod"] = "desktop-file-copy"
+                receipt = publication_receipt(self.store, result.get("snapshotId", ""))
+                if receipt:
+                    result["localPublication"] = receipt
             status, payload = HTTPStatus.OK, result
         except Exception as exc:
             status, payload = HTTPStatus.BAD_REQUEST, {"error": str(exc)}
@@ -766,6 +910,14 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
+        if path == '/api/native-remote/status':
+            self._native_remote('status')
+            return
+        if path == "/api/native-auth/status":
+            self._native_account("status")
+            return
+        if path.startswith("/api/") and not self._prepare_local_data_scope(path):
+            return
         if path.startswith("/api/") and not self._authorized():
             self._json(HTTPStatus.UNAUTHORIZED, {"error": "需要有效的手机配对口令。"})
             return
@@ -788,6 +940,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._json(HTTPStatus.OK, public_source_options(list(self.source_options.values()), active))
             elif path == "/api/pairing":
                 self._json(HTTPStatus.OK, {"enabled": self.access_token is not None, "urls": self.pairing_urls})
+            elif path == "/api/publications/latest":
+                if not self._desktop_sync_allowed():
+                    self._json(HTTPStatus.FORBIDDEN, {"error": "desktop_only"})
+                else:
+                    try:
+                        self._json(HTTPStatus.OK, read_remote_publication(self.store))
+                    except RemotePublicationNotReady as exc:
+                        self._json(HTTPStatus.CONFLICT, {"error": "REMOTE_PUBLICATION_NOT_READY", "reason": exc.reason})
             elif path == "/api/snapshots/latest":
                 self._json(HTTPStatus.OK, latest_snapshot(self.store))
             elif path == "/api/snapshots":
@@ -807,6 +967,14 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
+        if path.startswith('/api/native-remote/'):
+            self._native_remote(path.removeprefix('/api/native-remote/'))
+            return
+        if path.startswith("/api/native-auth/"):
+            self._native_account(path.removeprefix("/api/native-auth/"))
+            return
+        if path.startswith("/api/") and not self._prepare_local_data_scope(path):
+            return
         if path == "/api/import-save":
             self._upload_save()
             return
@@ -850,7 +1018,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         try:
             run_pipeline(store=self.store, research_label=research_label, **pipeline_config)
-            if selected_id is not None:
+            if selected_id is not None and not self._local_account_scoped:
                 type(self).pipeline_config = pipeline_config
             status, payload = HTTPStatus.OK, latest_snapshot(self.store)
         except Exception as exc:
@@ -900,6 +1068,10 @@ def create_http_server(
     items_path: Path | None = None,
     effects_path: Path | None = None,
     access_token: str | None = None,
+    native_auth_enabled: bool = False,
+    native_remote_enabled: bool = False,
+    native_remote_provision: bool = False,
+    native_remote_directory: Path | None = None,
 ) -> ThreadingHTTPServer:
     if web_root is not None and not (web_root / "index.html").is_file():
         raise FileNotFoundError(f"找不到前端构建：{web_root / 'index.html'}")
@@ -915,7 +1087,19 @@ def create_http_server(
     source_map = {f"source-{index}": item for index, item in enumerate(sources, start=1)}
     pairing_urls = local_pairing_urls(port, access_token) if access_token is not None else []
     mobile_sync = MobileSync(port + 100)
+    native_auth = None
+    if native_auth_enabled and host == "127.0.0.1" and access_token is None:
+        from agent.native_auth import NativeAuth
+        startup = None
+        if native_remote_enabled:
+            if native_remote_directory is None:
+                raise ValueError('native_remote_directory_required')
+            from agent.mvp_key_vault import NativeMvpStartup
+            startup = NativeMvpStartup(native_remote_directory, store, enabled=True,
+                                       provision_requested=native_remote_provision)
+        native_auth = NativeAuth(remote_startup=startup)
     handler = type("ConfiguredApiHandler", (ApiHandler,), {"mobile_sync": mobile_sync, "store": store, "web_root": web_root, "pipeline_config": pipeline_config, "pipeline_defaults": pipeline_defaults, "source_options": source_map, "access_token": access_token, "pairing_urls": pairing_urls})
+    handler.native_auth = native_auth
     server = ThreadingHTTPServer((host, port), handler)
     print(f"Nioh 2 read-only agent: http://{host}:{port}")
     print(f"Snapshot store: {store.resolve()}")
@@ -962,7 +1146,10 @@ def build_parser() -> argparse.ArgumentParser:
     parsed.add_argument("--store", type=Path, required=True)
     parsed.add_argument("--items", type=Path, default=Path(__file__).parent / "data" / "items.json")
     parsed.add_argument("--effects", type=Path, default=Path(__file__).parent / "data" / "effects.json")
+    parsed.add_argument("--paired-system", type=Path, help="Explicit encrypted paired SYSTEMSAVEDATA00 copy; absent means unknown")
     parsed.add_argument("--original-sha256")
+    parsed.add_argument("--experimental-scroll-selection", action="store_true",
+                        help="显式添加绘卷索引候选元数据；不作为通用装备验证")
     parsed.add_argument("--original-last-write-local")
     parsed.add_argument("--backup-original-last-write-local")
     parsed.add_argument("--label", help="可选的受控研究样本标签（1–80 个字符）")
@@ -1002,7 +1189,7 @@ def main() -> int:
         elif args.command == "import-json":
             print(import_snapshot_json(args.input, args.store))
         elif args.command == "parse-decrypted":
-            print(parse_and_store(args.input, args.backup, args.snapshot_root, args.store, args.items, args.effects, args.original_sha256, args.label, args.original_last_write_local, args.backup_original_last_write_local))
+            print(parse_and_store(args.input, args.backup, args.snapshot_root, args.store, args.items, args.effects, args.original_sha256, args.label, args.original_last_write_local, args.backup_original_last_write_local, include_experimental_scroll_selection=args.experimental_scroll_selection, paired_system_path=args.paired_system))
         elif args.command == "pipeline":
             print(run_pipeline(args.source, args.snapshot_workspace, args.store, args.decryptor, args.items, args.effects, args.label))
         elif args.command == "serve":

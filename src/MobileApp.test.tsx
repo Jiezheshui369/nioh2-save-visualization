@@ -13,12 +13,152 @@ const appNode = (data: SaveSnapshot | null = snapshot) => <MobileApp snapshot={d
 const renderApp = (data = snapshot) => render(appNode(data));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 describe('approved mobile design interactions', () => {
+  it('uses a neutral mobile identity and keeps the real level on one labelled line', () => {
+    renderApp();
+    expect(screen.getByRole('heading', { name: '角色资料' })).toBeVisible();
+    expect(screen.queryByText('无名武士')).not.toBeInTheDocument();
+    expect(document.querySelector('.nm-attribute-heading .nm-level')).toHaveTextContent('等级600');
+  });
+  it('does not promote an unproven current-loadout title while retaining actual gear, graces and saved data', () => {
+    const data = { ...snapshot, currentLoadoutName: '深处 · 妖念手甲', savedEquipmentPresetName: '用户保留的预设名称' };
+    const onExport = vi.fn();
+    render(<MobileApp {...appNode(data).props} onExport={onExport} />);
+    fireEvent.click(screen.getByRole('button', { name: '配装' }));
+    expect(screen.getByRole('heading', { name: '当前配装' })).toBeVisible();
+    expect(screen.queryByText('深处 · 妖念手甲')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /测试手甲/ })).toBeVisible();
+    expect(screen.getByText('祸津日的恩宠')).toBeVisible();
+    expect(data.currentLoadoutName).toBe('深处 · 妖念手甲');
+    expect(data.savedEquipmentPresetName).toBe('用户保留的预设名称');
+    fireEvent.click(screen.getByRole('button', { name: '我的配装册' }));
+    expect(screen.getByText('配装册')).toBeVisible();
+  });
+  it('keeps equipment identity and detail navigation when category art fails', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '配装' }));
+    const row = screen.getByRole('button', { name: /测试手甲 \+120/ });
+    const image = row.querySelector('img');
+    if (image) fireEvent.error(image);
+    expect(row.querySelector('img')).toBeNull();
+    expect(row).toHaveTextContent('手甲');
+    fireEvent.click(row);
+    expect(screen.getByRole('button', { name: '返回配装' })).toBeVisible();
+    expect(screen.getByText('最后一项效果')).toBeVisible();
+  });
+  it('retains category selection after every optional filter image fails', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.click(screen.getByRole('button', { name: '类别：全部' }));
+    const filters = screen.getByRole('region', { name: '筛选装备' });
+    for (const image of filters.querySelectorAll('img')) fireEvent.error(image);
+    expect(filters.querySelector('img')).toBeNull();
+    fireEvent.click(within(filters).getByRole('button', { name: '手甲' }));
+    fireEvent.click(screen.getByRole('button', { name: '应用筛选' }));
+    expect(screen.getByRole('button', { name: /测试手甲/ })).toBeVisible();
+  });
+
+  it('returns to the warehouse list when its bottom navigation is pressed from filters', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.click(screen.getByRole('button', { name: '类别：全部' }));
+    expect(screen.getByRole('region', { name: '筛选装备' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    expect(screen.queryByRole('region', { name: '筛选装备' })).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: '搜索仓库' })).toBeVisible();
+    expect(screen.getByRole('main')).toHaveAttribute('aria-label', '仓库内容');
+  });
+  it('focuses filters and restores the originating control on Escape without applying drafts', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.click(screen.getByRole('button', { name: '稀有度：全部' }));
+    expect(screen.getByRole('button', { name: '关闭 ×' })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: '神宝' }));
+    fireEvent.keyDown(screen.getByRole('region', { name: '筛选装备' }), { key: 'Escape' });
+    expect(screen.getByRole('button', { name: '稀有度：全部' })).toHaveFocus();
+  });
+  it('moves warehouse tabs with arrow keys and links the selected tab to its panel', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.keyDown(screen.getByRole('tab', { name: '装备' }), { key: 'ArrowRight' });
+    const selected = screen.getByRole('tab', { name: '物品' });
+    expect(selected).toHaveFocus();
+    expect(selected).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', selected.id);
+    fireEvent.keyDown(selected, { key: 'Home' });
+    expect(screen.getByRole('tab', { name: '装备' })).toHaveFocus();
+  });
+  it('focuses topbar search and still restores filter focus afterward', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: '配装' }));
+    fireEvent.click(screen.getByRole('button', { name: '搜索仓库' }));
+    expect(screen.getByRole('searchbox', { name: '搜索仓库' })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: '类别：全部' }));
+    fireEvent.keyDown(screen.getByRole('region', { name: '筛选装备' }), { key: 'Escape' });
+    expect(screen.getByRole('button', { name: '类别：全部' })).toHaveFocus();
+  });
+  it('keeps the complete uint32 attribute value', () => {
+    renderApp({ ...snapshot, character: { ...snapshot.character, attributes: { ...snapshot.character.attributes, constitution: 4294967295 } } });
+    expect(document.querySelector('.nm-attribute strong')).toHaveTextContent('4294967295');
+  });
+  it('keeps all destinations visible before import without inventing a character or failure', () => {
+    render(appNode(null));
+    expect(screen.getByRole('heading', { name: '本机还没有存档资料' })).toBeVisible();
+    expect(screen.getByRole('button', { name: '角色' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '更多' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByText('无名武士')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+  it('keeps source provenance without a mobile top sample banner and retains unknown values', () => {
+    renderApp({ ...snapshot, snapshotId: 'synthetic-mobile-test', currentLoadout: [{ ...snapshot.currentLoadout[0], rarity: 'Unmapped' }] });
+    expect(screen.queryByText('示例数据 · 非存档读取 / 模拟预览')).toBeNull();
+    expect(screen.getByRole('note')).toHaveTextContent('合成预览');
+    fireEvent.click(screen.getByRole('button', { name: '配装' }));
+    expect(screen.queryByText('示例数据 · 非存档读取 / 模拟预览')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /测试手甲 \+120/ }));
+    expect(screen.getByText('未知 · 示例')).toBeVisible();
+    expect(screen.getByText('数值未解析')).toBeVisible();
+    expect(screen.queryByText('妖念量表积累速度 +30.0%')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '返回配装' }));
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    expect(screen.getByText('示例库 · 非存档读取')).toBeVisible();
+  });
+  it('filters unknown equipment explicitly and resets an empty search', () => {
+    const unknown = { ...gear, name: 'Unknown blade', nameZh: '无明确类别名称', rarity: 'Unmapped' };
+    renderApp({ ...snapshot, currentLoadout: [], equipmentInventory: [unknown], scrolls: [] });
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.click(screen.getByRole('button', { name: '类别：全部' }));
+    fireEvent.click(screen.getByRole('button', { name: '未分类武器' }));
+    fireEvent.click(screen.getByRole('button', { name: '未知' }));
+    fireEvent.click(screen.getByRole('button', { name: '应用筛选' }));
+    expect(screen.getByText('未分类武器 · 1 件')).toBeVisible();
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '不存在' } });
+    fireEvent.click(screen.getByRole('button', { name: '重置筛选' }));
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    expect(screen.getByRole('button', { name: /无明确类别名称/ })).toBeVisible();
+  });
+  it('sorts and filters stacked items by their actual quantities and types', () => {
+    renderApp({ ...snapshot, inventoryItems: [
+      { recordIndex: 0, id: 'one', name: 'One', nameZh: '低数量物品', type: 'Usable Items', quantity: 2 },
+      { recordIndex: 1, id: 'two', name: 'Two', nameZh: '高数量材料', type: 'Smithing Materials', quantity: 48 },
+    ] });
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    fireEvent.click(screen.getByRole('tab', { name: '物品' }));
+    const list = document.querySelector('.nm-warehouse-list')!;
+    expect(list.textContent!.indexOf('高数量材料')).toBeLessThan(list.textContent!.indexOf('低数量物品'));
+    const select = screen.getByRole('combobox', { name: '物品类别' });
+    const option = within(select).getAllByRole('option').find(o => o.textContent === '锻造素材') ?? within(select).getAllByRole('option')[2];
+    fireEvent.change(select, { target: { value: (option as HTMLOptionElement).value } });
+    expect(screen.getByText('高数量材料')).toBeVisible();
+    expect(screen.queryByText('低数量物品')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '排序：数量' }));
+    expect(screen.getByRole('button', { name: '排序：名称' })).toBeVisible();
+  });
   it('does not attach another character receipt or promise optional desktop caching succeeded', () => {
     const info = { schemaVersion: '1.0.0' as const, source: 'computer-sync' as const, importedAt: '2026-09-25', sourceSnapshotId: 'other', sourceLastWriteLocal: '2026-09-25', buildCount: 0 };
     const app = render(<MobileApp {...appNode().props} archiveInfo={info} />);
     expect(screen.queryByText('电脑安全同步')).not.toBeInTheDocument();
     app.rerender(<MobileApp {...appNode().props} desktop={{ tools: null, importPanel: null, notices: null, refreshing: false, newerSave: false, onRefresh: vi.fn() }} />);
-    expect(screen.getByText('电脑展示 · 原始存档只读')).toBeVisible();
+    expect(screen.queryByText('电脑展示 · 原始存档只读')).not.toBeInTheDocument();
     expect(screen.queryByText(/离线可用/)).not.toBeInTheDocument();
   });
   it('updates an open loadout detail and its share text when the same snapshot is replaced', () => {
@@ -84,7 +224,7 @@ describe('approved mobile design interactions', () => {
         { label: '装备重量', value: '38.0/57.4', pages: [1] },
       ] }], effects: [{ title: '恢复', entries: [{ label: '体力', value: '+964', pages: [1] }, { label: '妖力', value: '+7.8', pages: [1] }] }] } });
     for (const value of ['9841', '1297', '17.8', '+964', '+7.8']) expect(screen.getByText(value)).toBeVisible();
-    expect(screen.getAllByText('38.0/57.4')).toHaveLength(2);
+    expect(screen.getAllByText('38.0/57.4')).toHaveLength(1);
     for (const value of ['9841/9841', '1297/1297', '0.0/17.8']) expect(screen.queryByText(value)).not.toBeInTheDocument();
   });
   it('uses four bottom tabs, equal-size attribute classes, and hides sync on character screen', () => {
@@ -93,7 +233,7 @@ describe('approved mobile design interactions', () => {
     expect(app.container.querySelectorAll('.nm-attribute')).toHaveLength(8);
     expect(screen.queryByRole('button', { name: '扫描电脑二维码' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '更多' }));
-    expect(screen.getByRole('button', { name: '扫描电脑二维码' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: '扫描电脑二维码' })).not.toBeInTheDocument();
   });
   it('opens all equipment effects, including values after the third, from the loadout', () => {
     renderApp(); fireEvent.click(screen.getByRole('button', { name: '配装' }));
@@ -128,11 +268,31 @@ describe('approved mobile design interactions', () => {
   it('does not apply screenshot attributes from another snapshot', () => {
     renderApp({ ...snapshot, characterStatus: { version: 1, source: 'game-screenshots', recordedOn: '2026-09-23', captureTime: null, referenceSnapshotId: 'other', screenshotCount: 1, groups: [{ title: '旧记录', entries: [{ label: '敏捷', value: 'AA', pages: [1] }] }], effects: [] } });
     expect(screen.queryByText('AA')).not.toBeInTheDocument();
-    expect(screen.getAllByText('未解析')).toHaveLength(6);
+    expect(screen.getAllByText('未解析')).toHaveLength(153);
   });
   it('keeps unidentified weapon types and does not use a specific accessory icon for every accessory', () => {
     expect(equipmentCategory({ ...gear, name: 'Unknown blade', nameZh: null })).toBe('未分类武器');
     expect(equipmentIcon({ ...gear, type: 'Accessory', name: 'Fan', nameZh: '扇子' })).toBeUndefined();
+  });
+  it('restores the warehouse scroll position after equipment detail', () => {
+    const view = renderApp(); fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    const scroller = view.container.querySelector('.nm-scroll') as HTMLElement;
+    scroller.scrollTop = 480;
+    fireEvent.click(screen.getByRole('button', { name: /测试手甲 \+120/ }));
+    expect(scroller.scrollTop).toBe(0);
+    fireEvent.click(screen.getByRole('button', { name: '返回仓库' }));
+    expect(scroller.scrollTop).toBe(480);
+  });
+  it('renders a large warehouse in batches and searches records beyond the first batch', () => {
+    const inventory = Array.from({ length: 1000 }, (_, i) => ({ ...gear, recordIndex: i + 100, id: 'large-' + i, nameZh: '大仓库装备' + i }));
+    const view = renderApp({ ...snapshot, currentLoadout: [], equipmentInventory: inventory, scrolls: [] });
+    fireEvent.click(screen.getByRole('button', { name: '仓库' }));
+    expect(view.container.querySelectorAll('.nm-warehouse .nm-equipment-row')).toHaveLength(60);
+    fireEvent.click(screen.getByRole('button', { name: '加载更多' }));
+    expect(view.container.querySelectorAll('.nm-warehouse .nm-equipment-row')).toHaveLength(120);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '大仓库装备999' } });
+    expect(view.container.querySelectorAll('.nm-warehouse .nm-equipment-row')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /大仓库装备999/ })).toBeVisible();
   });
   it('never classifies soul cores or unknown non-weapons as weapons', () => {
     expect(equipmentCategory({ ...gear, type: 'Soul Core', name: 'Sword enemy core' })).toBe('魂核');

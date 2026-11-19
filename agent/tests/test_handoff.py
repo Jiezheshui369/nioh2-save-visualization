@@ -18,7 +18,9 @@ class HandoffTests(unittest.TestCase):
                      'ios/App/App.xcodeproj/xcuserdata/user.xcuserdatad/test.xcscheme',
                      'packaging/studio-d.properties', 'agent/data/key.pem', 'agent/data/signing.p12',
                      'design-assets/screenshot.png', 'public/character.json', 'src/.env',
-                     'vite.config.js', 'tsconfig.app.tsbuildinfo']:
+                     'vite.config.js', 'tsconfig.app.tsbuildinfo', 'relay/.dev.vars',
+                     'relay/.dev.vars.production', 'relay/.wrangler/state.json',
+                     'relay/node_modules/dependency/index.js']:
             with self.subTest(name=name):
                 self.assertFalse(allowed(name))
 
@@ -27,7 +29,9 @@ class HandoffTests(unittest.TestCase):
                      'src/assets/figma/wallet.svg', 'agent/data/items.json',
                      'agent/tools/katana/LICENSE.txt', 'android/gradlew',
                      'android/gradle/wrapper/gradle-wrapper.jar', 'ios/App/App/Info.plist',
-                     '.github/workflows/check.yml', 'docs/MAC_HANDOFF.md']:
+                     '.github/workflows/check.yml', 'docs/MAC_HANDOFF.md',
+                     'relay/src/index.js', 'relay/wrangler.jsonc', 'relay/.gitignore',
+                     'contracts/publication-v1-vectors.json']:
             with self.subTest(name=name):
                 self.assertTrue(allowed(name))
 

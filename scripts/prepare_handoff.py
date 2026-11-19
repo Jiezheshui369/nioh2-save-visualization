@@ -16,17 +16,17 @@ import zipfile
 ROOT_FILES = {
     '.gitignore', '.gitattributes', '.nvmrc', 'AGENTS.md', 'README.md', 'LICENSE',
     'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'package.json', 'package-lock.json',
-    'capacitor.config.ts', 'vite.config.ts', 'tsconfig.json', 'tsconfig.app.json',
+    'capacitor.config.ts', 'vite.config.ts', 'tsconfig.json', 'tsconfig.app.json', 'desktop_self_test.py',
     'tsconfig.node.json', 'index.html', 'desktop_launcher.py', 'desktop_window.py',
     'build-android.ps1', 'build-mobile.ps1', 'build-windows.ps1', 'run-local.ps1',
-    'start-local.cmd', 'start-phone-test.cmd',
+    'start-local.cmd', 'start-phone-test.cmd', 'start-private-mobile.cmd', 'start-private-mobile-color.cmd',
 }
-SOURCE_DIRS = {'src', 'agent', 'scripts', 'docs', 'packaging', 'android', 'ios', '.github'}
+SOURCE_DIRS = {'src', 'agent', 'scripts', 'docs', 'packaging', 'android', 'ios', '.github', 'relay', 'contracts'}
 SOURCE_SUFFIXES = {
-    '.ts', '.tsx', '.js', '.mjs', '.py', '.md', '.txt', '.json', '.svg', '.xml', '.css',
+    '.ts', '.tsx', '.mts', '.js', '.mjs', '.py', '.md', '.txt', '.json', '.svg', '.xml', '.css',
     '.gradle', '.properties', '.java', '.kt', '.swift', '.plist', '.storyboard',
     '.xcprivacy', '.pbxproj', '.xcworkspacedata', '.xcscheme', '.entitlements',
-    '.yml', '.yaml', '.ps1', '.sh', '.cmd', '.bat', '.spec', '.xcconfig',
+    '.jsonc', '.yml', '.yaml', '.ps1', '.sh', '.cmd', '.bat', '.spec', '.xcconfig',
 }
 SKIP_PARTS = {
     'node_modules', '__pycache__', '.gradle', 'build', 'Pods', 'DerivedData',
@@ -57,6 +57,8 @@ def allowed(relative: str) -> bool:
         # src/assets contains deliberately checked-in SVG UI icons, not native generated assets.
         if not (relative.startswith('src/assets/') and path.suffix in {'.svg', '.md'}):
             return False
+    if relative == 'relay/.gitignore':
+        return True
     if relative in ROOT_FILES or relative == KATANA or relative == 'agent/tools/katana/LICENSE.txt':
         return True
     if relative.startswith('agent/tools/katana/'):

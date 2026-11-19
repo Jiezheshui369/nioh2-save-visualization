@@ -1,0 +1,57 @@
+import { cleanup,fireEvent,render,screen,within } from '@testing-library/react';
+import { afterEach,describe,expect,it } from 'vitest';
+import { isSkills,skillDefinitions } from './skills';
+import type { Skills } from './skills';
+import type { SaveSnapshot } from './types';
+import { DesktopSkills } from './DesktopSkills';
+import { isSupportedSnapshot } from './snapshotValidation';
+import { createShareSnapshot } from './privacy';
+import demo from '../public/data/demo-snapshot.json';
+const fixture=():Skills=>({version:1,gameId:'nioh2',definitionVersion:'skills-native-v1493-1',inputSha256:'a'.repeat(64),state:'verified-saved-learning',reason:null,entries:skillDefinitions.map((n,i)=>({skillId:n.skillId,savedRecordPresent:i===0,learned:i===0,storedRank:i===0?1:null})),current:{canPurchase:null,visible:null,questEligibility:null,dlcEligibility:null}});
+afterEach(cleanup);
+describe('personal skill snapshot contract',()=>{
+  it('keeps static first-rank references separate from saved ranks and rejects unresolved formatting',()=>{
+    const description=skillDefinitions.find(n=>n.skillId===10590)!.baseDescription;
+    expect(description).toBe('可携带手里剑。掷出后能给予敌人伤害。');
+    expect(skillDefinitions.find(n=>n.skillId===953)!.baseDescription).toBe('可携带散弹苦无。同时投掷多个苦无，给予敌人伤害。');
+    expect(skillDefinitions.filter(n=>n.baseDescription)).toHaveLength(358);
+    expect(skillDefinitions.filter(n=>n.baseDescription?.includes('%'))).toHaveLength(0);
+    expect(skillDefinitions.filter(n=>n.baseDescription?.includes('\r'))).toHaveLength(0);
+    expect(skillDefinitions.find(n=>n.skillId===25563)!.baseDescription).toBeNull();
+    expect(skillDefinitions.filter(n=>n.baseDescription&&/[%^~@<>]/.test(n.baseDescription))).toHaveLength(0);
+    expect(skillDefinitions.some(n=>n.baseDescription===null)).toBe(true);
+    const skills=fixture();const saved=skills.entries.find(n=>n.skillId===10590)!;
+    saved.savedRecordPresent=true;saved.learned=true;saved.storedRank=3;
+    render(<DesktopSkills snapshot={{...demo,skills} as unknown as SaveSnapshot} onMenu={()=>{}}/>);
+    fireEvent.click(screen.getByRole('button',{name:/^忍术$/}));
+    fireEvent.click(document.querySelector('[data-skill-id="10590"]')!);
+    const detail=screen.getByRole('region',{name:'技能详情'});
+    expect(detail).toHaveTextContent('当前等级3');
+    expect(within(detail).getByLabelText('一阶效果资料')).toHaveTextContent(description!);
+    expect(detail).toHaveTextContent('非当前生效效果');
+  });
+  it('accepts legacy snapshots and validated saved state while rejecting duplicate, impossible and live claims',()=>{
+    expect(isSupportedSnapshot(demo)).toBe(true);
+    const original={...demo,safety:{...demo.safety,snapshotCopySha256:'A'.repeat(64)}} as unknown as SaveSnapshot;
+    const skills=fixture();expect(isSkills(skills)).toBe(true);
+    expect(isSupportedSnapshot({...original,skills})).toBe(true);
+    expect(createShareSnapshot({...original,skills})).not.toHaveProperty('skills');
+    expect(isSupportedSnapshot({...original,skills:{...skills,inputSha256:'b'.repeat(64)}})).toBe(false);
+    const duplicate=fixture();duplicate.entries[1]={...duplicate.entries[0]};expect(isSkills(duplicate)).toBe(false);
+    const invalid=fixture();invalid.entries[0].storedRank=65535;expect(isSkills(invalid)).toBe(false);
+    expect(isSkills({...skills,current:{...skills.current,visible:true}})).toBe(false);
+    const unknown={...skills,state:'unknown',reason:'unsupported-layout-or-chain',entries:skills.entries.map(e=>({...e,savedRecordPresent:null,learned:null,storedRank:null}))};expect(isSkills(unknown)).toBe(true);
+    expect(isSkills({...unknown,entries:skills.entries})).toBe(false);
+  });
+  it('joins exact skill IDs and keeps quest and purchase state unknown',()=>{
+    render(<DesktopSkills snapshot={{...demo,skills:fixture()} as unknown as SaveSnapshot} onMenu={()=>{}}/>);
+    fireEvent.click(screen.getByRole('button',{name:/^刀$/}));
+    const first=skillDefinitions.find(n=>n.category===0)!;
+    const button=document.querySelector('[data-skill-id="'+first.skillId+'"]')!;
+    fireEvent.click(button);
+    const detail=screen.getByRole('region',{name:'技能详情'});
+    expect(detail).toHaveTextContent(first.name);expect(detail).toHaveTextContent('已学');
+    expect(within(detail).getByText('当前资格未知',{exact:false})).toBeInTheDocument();
+    expect(detail).toHaveTextContent('前置条件—');
+  });
+});

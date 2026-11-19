@@ -3,6 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import threading
+import subprocess
+from desktop_display import initial_window_geometry
+
+WINDOW_ICON = Path(__file__).resolve().parent / "public" / "app.ico"
 
 LOCALIZATION = {
     'global.quitConfirmation': '确定关闭存档伴侣？本次手机配对将失效，手机已保存的资料不受影响。',
@@ -31,6 +35,9 @@ class WindowService:
         if self.closed:
             return
         self.closed = True
+        native_auth = getattr(self.server.RequestHandlerClass, 'native_auth', None)
+        if native_auth is not None:
+            native_auth.cancel()
         # Revoke pairing before stopping the local control API.
         try:
             self.server.RequestHandlerClass.mobile_sync.stop()
@@ -41,9 +48,27 @@ class WindowService:
             self.server.server_close()
 
 
-def run_window(server, data_root: Path, *, backend=None):
+def run_window(server, data_root: Path, *, backend=None, edge_runtime: Path | None = None, self_test=False, self_test_save: Path | None = None):
     service = WindowService(server)
     try:
+        if edge_runtime is not None:
+            host, port = server.server_address[:2]
+            if host != '127.0.0.1':
+                raise ValueError('独立窗口的控制服务必须只监听本机。')
+            profile = data_root / 'webview-profile'
+            profile.mkdir(parents=True, exist_ok=True)
+            service.start()
+            script = Path(__file__).resolve().parent / 'packaging' / 'desktop-webview-host.ps1'
+            args = ['powershell.exe', '-NoLogo', '-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', str(script),
+                '-Url', f'http://127.0.0.1:{port}/', '-Profile', str(profile), '-Runtime', str(edge_runtime.resolve()), '-IconPath', str(WINDOW_ICON)]
+            if self_test:
+                args.extend(['-SelfTest', '-ResultFile', str(data_root / 'native-window-self-test.json')])
+                if self_test_save is not None:
+                    args.extend(['-TestSave', str(self_test_save.resolve(strict=True))])
+            result = subprocess.run(args, check=False, creationflags=subprocess.CREATE_NO_WINDOW)
+            if result.returncode:
+                raise RuntimeError('独立WebView2应用窗口启动失败。')
+            return
         if backend is None:
             import webview
             backend = webview
@@ -56,11 +81,25 @@ def run_window(server, data_root: Path, *, backend=None):
         profile = data_root / 'webview-profile'
         profile.mkdir(parents=True, exist_ok=True)
         service.start()
-        backend.create_window('Nioh · 存档伴侣', f'http://127.0.0.1:{port}/',
-                              width=1280, height=900, min_size=(800, 600),
+        window = backend.create_window('存档资产 Save Asset', f'http://127.0.0.1:{port}/',
+                              **initial_window_geometry(),
                               background_color='#090b0a', text_select=True)
         # Force modern Chromium; never silently fall back to Internet Explorer.
-        backend.start(gui='edgechromium', private_mode=False, storage_path=str(profile),
-                      debug=False, localization=LOCALIZATION)
+        options = dict(gui='edgechromium', private_mode=False, storage_path=str(profile),
+                       debug=False, localization=LOCALIZATION, icon=str(WINDOW_ICON))
+        failure = []
+        if self_test:
+            from desktop_self_test import verify_window
+            def test_window():
+                try:
+                    verify_window(window, data_root, self_test_save)
+                except Exception as exc:
+                    failure.append(str(exc))
+                finally:
+                    window.destroy()
+            options['func'] = test_window
+        backend.start(**options)
+        if failure:
+            raise RuntimeError(f'Desktop self-test failed: {failure[0]}')
     finally:
         service.close()

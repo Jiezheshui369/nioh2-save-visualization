@@ -1,3 +1,5 @@
+import { desktopContextHeaders } from './desktopDataContext';
+import type { DesktopDataContext } from './desktopDataContext';
 import type { AgentStatus, SaveSnapshot, SaveSourceOption, SnapshotSummary } from "./types";
 import { isNativeApp } from "./runtime";
 import { isSupportedSnapshot } from "./snapshotValidation";
@@ -38,7 +40,7 @@ function pairingToken(): string {
   }
 }
 
-async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+async function fetchJson<T>(url: string, signal?: AbortSignal, context?: DesktopDataContext): Promise<T> {
   if (isNativeApp()) throw new Error("手机应用展示本机档案，请通过“连接电脑”同步更新。");
   const token = pairingToken();
   const controller = new AbortController();
@@ -47,7 +49,7 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   if (signal?.aborted) abort();
   const timeout = window.setTimeout(() => controller.abort(new DOMException('电脑读取请求超时', 'TimeoutError')), 20000);
   try {
-    const response = await fetch(url, { signal: controller.signal, headers: token ? { "X-Nioh2-Token": token } : undefined });
+    const response = await fetch(url, { signal: controller.signal, headers: context ? { ...desktopContextHeaders(context), ...(token ? { "X-Nioh2-Token": token } : {}) } : token ? { "X-Nioh2-Token": token } : undefined });
     if (!response.ok) {
       let message = `请求失败：${response.status}`;
       try {
@@ -110,8 +112,8 @@ export async function loadAgentStatus(signal?: AbortSignal): Promise<AgentStatus
   return validateAgentStatus(await fetchJson<unknown>(`${API_BASE}/health`, signal));
 }
 
-export async function loadSaveSources(signal?: AbortSignal): Promise<SaveSourceOption[]> {
-  return validateSaveSources(await fetchJson<unknown>(`${API_BASE}/sources`, signal));
+export async function loadSaveSources(signal?: AbortSignal, context?: DesktopDataContext): Promise<SaveSourceOption[]> {
+  return validateSaveSources(await fetchJson<unknown>(`${API_BASE}/sources`, signal, context));
 }
 
 export async function loadSnapshot(snapshotId: string, signal?: AbortSignal): Promise<SaveSnapshot> {
@@ -161,10 +163,10 @@ export async function importSnapshot(file: File): Promise<SaveSnapshot> {
   return snapshot;
 }
 
-export async function refreshSnapshot(sourceId?: string, label?: string): Promise<SaveSnapshot> {
+export async function refreshSnapshot(sourceId?: string, label?: string, context?: DesktopDataContext): Promise<SaveSnapshot> {
   if (isNativeApp()) throw new Error("请在电脑读取存档并发布，再从手机接收；手机不会直接读取电脑存档。");
   const token = pairingToken();
-  const headers: Record<string, string> = { "Content-Type": "application/json", "X-Nioh2-Desktop-Sync": "1" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", "X-Nioh2-Desktop-Sync": "1", ...(context ? desktopContextHeaders(context) : {}) };
   if (token) headers["X-Nioh2-Token"] = token;
   const body: { sourceId?: string; label?: string } = {};
   if (sourceId) body.sourceId = sourceId;
@@ -189,6 +191,6 @@ export async function refreshSnapshot(sourceId?: string, label?: string): Promis
   const snapshot = value;
   if (!isSupportedSnapshot(snapshot)) throw new Error("刷新结果无效，旧档案仍保留。");
   lastLoadSource = "api";
-  await saveCachedSnapshot(snapshot);
+  if (!context) await saveCachedSnapshot(snapshot);
   return snapshot;
 }

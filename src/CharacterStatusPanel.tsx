@@ -6,7 +6,7 @@ import type { SaveSnapshot } from "./types";
 function Values({ entries, panel = false }: { entries: StatusEntry[]; panel?: boolean }) {
   return <dl className="status-values">{entries.map((entry) => <div key={JSON.stringify([entry.label, entry.value])}>
     <dt>{entry.label}<small>图 {entry.pages.join("、")}</small></dt>
-    <dd>{(panel ? formatPanelValue(entry) : entry.value) ?? <span className="status-enabled">已生效</span>}</dd>
+    <dd>{(panel ? formatPanelValue(entry) : entry.value) ?? <span className="status-observation-flag">无数值记录</span>}</dd>
   </div>)}</dl>;
 }
 
@@ -28,7 +28,7 @@ export function CharacterStatusPanel({ snapshot }: { snapshot: SaveSnapshot }) {
   const effects = deduplicateEntries(status.effects.flatMap((group) => group.entries));
   const needle = query.trim();
   const shown = status.effects.filter((group) => category === "全部" || group.title === category)
-    .map((group) => ({ ...group, entries: deduplicateEntries(group.entries).filter((entry) => !needle || `${entry.label} ${entry.value ?? "已生效"}`.includes(needle)) }))
+    .map((group) => ({ ...group, entries: deduplicateEntries(group.entries).filter((entry) => !needle || `${entry.label} ${entry.value ?? "无数值记录"}`.includes(needle)) }))
     .filter((group) => group.entries.length > 0);
   const shownCount = shown.reduce((sum, group) => sum + group.entries.length, 0);
   return <section className="character-status" aria-label="人物详细属性">
@@ -38,7 +38,7 @@ export function CharacterStatusPanel({ snapshot }: { snapshot: SaveSnapshot }) {
     <p className="status-note">体力、精力、妖力仅显示上限。</p>
     <div className="status-group-grid">{status.groups.map((group) => <section className="status-group" key={group.title}><h3>{group.title}</h3><Values entries={deduplicateEntries(group.entries)} panel /></section>)}</div>
     <div className="status-effects-heading"><h3>特殊效果</h3><span>{effects.length} 条截图可见记录</span></div>
-    <p className="status-note">只收录截图可见条目，重复行已合并；无数值的效果显示“已生效”，不推算百分比。</p>
+    <p className="status-note">只收录截图可见条目，重复行已合并；无数值项仅保留截图记录，不判断当前生效状态或推算百分比。</p>
     <div className="status-filters">
       <label htmlFor={searchId}>搜索效果<input id={searchId} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：近距离、掉落、妖怪化" /></label>
       <label htmlFor={categoryId}>效果分类<select id={categoryId} value={category} onChange={(event) => setCategory(event.target.value)}><option>全部</option>{status.effects.map((group) => <option key={group.title}>{group.title}</option>)}</select></label>

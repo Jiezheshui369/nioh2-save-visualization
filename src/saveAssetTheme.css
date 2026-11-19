@@ -1,0 +1,69 @@
+/* Shared installed UI: quiet misted ink, thin edges and restrained gold/red. */
+.nm-shell:not(.nm-materials) {
+  --ink: #272e2e; --charcoal: rgba(56,64,62,.56); --charcoal-2: rgba(74,81,76,.42);
+  --paper: #f0eee4; --paper-dark: #e2e1d7; --mist: #b5beb7;
+  --gold: #dac28b; --vermillion: #a64132; --nm-border: rgba(209,212,186,.17);
+  background: radial-gradient(ellipse at 88% 0%,rgba(160,155,113,.13),transparent 58%),linear-gradient(130deg,#303a38,#252c2d 70%);
+  color: var(--paper); font-family: "Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+}
+.nm-shell:not(.nm-materials) button { transition: background .15s,border-color .15s; }
+.nm-shell:not(.nm-materials) button:hover:not(:disabled) { background-color: rgba(170,155,105,.13); border-color: rgba(218,194,139,.6); }
+.nm-shell:not(.nm-materials) .nm-primary { background: #a64132; border-color: #ba604c; color:#fff4e7; }
+.nm-shell:not(.nm-materials) .nm-primary:hover:not(:disabled) { background: #b34c3c; }
+.nm-shell:not(.nm-materials) .nm-character-head { border-bottom:0; min-height:88px; }
+.nm-shell:not(.nm-materials) .nm-neutral-head.nm-character-head { min-height: 94px; }
+.nm-shell:not(.nm-materials) h1 { font-weight:600; letter-spacing:.04em; }
+.nm-shell:not(.nm-materials) h2 { font-weight:600; letter-spacing:.035em; }
+.nm-shell:not(.nm-materials) .nm-resources > div,
+.nm-shell:not(.nm-materials) .nm-state-card,
+.nm-shell:not(.nm-materials) .nm-detail-card,
+.nm-shell:not(.nm-materials) .nm-equipment-row,
+.nm-shell:not(.nm-materials) .nm-inventory-row { background:rgba(67,76,71,.42); border:1px solid var(--nm-border); border-radius:5px; }
+.nm-shell:not(.nm-materials) .nm-state-card { padding:20px; }
+.nm-shell:not(.nm-materials) .nm-attribute { width:100%; min-width:0; background:transparent; border:0; border-top:1px solid var(--nm-border); border-radius:0; height:58px; flex-direction:row; justify-content:space-between; padding:0 10px; }
+.nm-shell:not(.nm-materials) .nm-attribute b { font-weight:400; color:var(--mist); }
+.nm-shell:not(.nm-materials) .nm-attribute strong { font-weight:600; font-size:18px; }
+.nm-shell:not(.nm-materials) .nm-attribute-grid { gap:0 16px; }
+.nm-shell:not(.nm-materials) .nm-attribute-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; }
+.nm-shell:not(.nm-materials) .nm-attribute-heading h2 { margin:0; }
+.nm-shell:not(.nm-materials) .nm-attribute-heading .nm-level { display:flex; align-items:baseline; gap:9px; white-space:nowrap; }
+.nm-shell:not(.nm-materials) .nm-attribute-heading .nm-level span { color:var(--mist); font-size:12px; }
+.nm-shell:not(.nm-materials) .nm-attribute-heading .nm-level strong { display:inline; font-size:26px; line-height:1.2; font-weight:500; }
+.nm-shell:not(.nm-materials) .nm-summary { border:0; border-radius:0; background:transparent; padding:6px 0; }
+.nm-shell:not(.nm-materials) .nm-summary > div { min-height:28px; border-bottom:1px solid rgba(209,212,186,.08); }
+.nm-shell:not(.nm-materials) .nm-values { gap:0; }
+.nm-shell:not(.nm-materials) .nm-values > div { background:transparent; border-bottom:1px solid var(--nm-border); }
+.nm-shell:not(.nm-materials) .nm-section { margin:8px 20px; padding:16px; border:1px solid var(--nm-border); border-radius:5px; background:rgba(64,73,68,.35); }
+.nm-shell:not(.nm-materials) .nm-attributes { margin:0 20px 8px; padding:16px; border:1px solid var(--nm-border); border-radius:5px; background:rgba(64,73,68,.35); }
+.nm-shell:not(.nm-materials) .nm-topbar,.nm-shell:not(.nm-materials) .nm-bottom-nav { background:rgba(38,47,44,.9); backdrop-filter:blur(16px); }
+.nm-shell:not(.nm-materials) .nm-notice { background:rgba(144,154,131,.08); border-left:2px solid #a99769; border-radius:2px; padding:10px 14px; margin-bottom:18px; }
+.nm-shell:not(.nm-materials) .freshness-banner { background:rgba(151,128,69,.11); border-color:rgba(218,194,139,.42); border-radius:4px; }
+.nm-shell:not(.nm-materials) .sync-panel { border:1px solid var(--nm-border); border-radius:5px; background:rgba(60,70,64,.42); box-shadow:none; }
+.nm-shell:not(.nm-materials) .sync-panel[aria-label="电脑导入游戏存档"] { border:1px solid rgba(218,194,139,.36); border-left:2px solid #b59c67; }
+.nm-shell:not(.nm-materials) .asset-connection-unavailable { background:rgba(160,148,102,.08); border-left:2px solid #9b9278; border-radius:0; }
+.nd-shell:not(.nm-materials) { display:grid; grid-template-columns:224px minmax(0,1fr); }
+.nd-shell:not(.nm-materials) .nd-sidebar { padding:32px 20px 24px; background:rgba(31,40,38,.55); backdrop-filter:blur(12px); }
+.nd-shell:not(.nm-materials) .nd-brand { padding:6px 8px 42px; gap:10px; }
+.nd-shell:not(.nm-materials) .nd-brand b { font:600 29px/1.25 "STSong","SimSun",serif; letter-spacing:.06em; white-space:nowrap; }
+.nd-shell:not(.nm-materials) .nd-brand span { font-size:11px; font-weight:500; letter-spacing:3px; color:var(--mist); }
+.nd-shell:not(.nm-materials) .nd-brand small { font-size:11px; letter-spacing:0; margin-top:3px; }
+.nd-shell:not(.nm-materials) .nd-nav { gap:12px; }
+.nd-shell:not(.nm-materials) .nd-nav button { background:transparent; font-weight:500; color:var(--paper-dark); border-radius:0 4px 4px 0; }
+.nd-shell:not(.nm-materials) .nd-nav button[aria-current] { color:var(--gold); background:rgba(172,161,119,.1); border-left:2px solid #b9523e; }
+.nd-shell:not(.nm-materials) .nd-toolbar { background:rgba(36,45,42,.3); padding-left:32px; }
+.nd-shell:not(.nm-materials) .nd-toolbar span { color:var(--mist); letter-spacing:1px; }
+.nd-shell:not(.nm-materials) .nd-toolbar strong { font-size:18px; font-weight:500; }
+.nd-shell:not(.nm-materials) .nm-character-head { min-height:92px; padding:4px 0 20px; }
+.nd-shell:not(.nm-materials) .nm-character-head h1 { font-size:30px; }
+.nd-shell:not(.nm-materials) .nm-resources > div { min-height:110px; }
+.nd-shell:not(.nm-materials) .nm-attributes,.nd-shell:not(.nm-materials) .nm-section { margin:0; padding:20px; }
+.nd-shell:not(.nm-materials) .nm-attribute-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.nd-shell:not(.nm-materials) .nm-character-page > .nm-note { background:rgba(64,73,68,.2); border-left:1px solid var(--nm-border); border-radius:4px; }
+.nd-shell:not(.nm-materials) .nd-workflow { padding:0 0 20px; font-size:12px; color:var(--mist); }
+.nd-shell:not(.nm-materials) .nd-workflow span:first-child { color:var(--gold); }
+.nd-shell:not(.nm-materials) .nm-more { gap:22px; }
+.nd-shell:not(.nm-materials) .nm-more .sync-panel button { min-height:40px; }
+.nd-shell:not(.nm-materials) .native-account > h2 { font-size:19px; }
+@media(max-width:1190px) and (min-width:761px) { .nd-shell:not(.nm-materials) { grid-template-columns:180px minmax(0,1fr); } .nd-shell:not(.nm-materials) .nd-sidebar { padding:24px 12px; } .nd-shell:not(.nm-materials) .nd-brand b { font-size:26px; letter-spacing:0; } }
+@media(max-width:760px) { .nd-shell:not(.nm-materials) { grid-template-columns:minmax(0,1fr); } .nd-shell:not(.nm-materials) .nd-sidebar { padding:8px 12px; } .nd-shell:not(.nm-materials) .nd-toolbar { padding:12px 16px; } .nd-shell:not(.nm-materials) .nd-workflow { gap:8px; font-size:10px; } .nm-shell:not(.nm-materials) .nm-attribute-grid { gap:0 8px; } .nm-shell:not(.nm-materials) .nm-attribute { padding:0 5px; } .nm-shell:not(.nm-materials) .nm-attribute strong { font-size:16px; } }
+@media(prefers-reduced-motion:reduce) { .nm-shell:not(.nm-materials) button { transition:none; } }

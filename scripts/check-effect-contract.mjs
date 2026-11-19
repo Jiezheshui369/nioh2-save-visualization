@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
+import { privateVisualAssetsPlugin } from './private-visual-assets.mjs';
 
 const args = process.argv.slice(2);
 if (args.length !== 2 || args[0] !== '--python' || !args[1]) {
@@ -16,6 +17,8 @@ const payload = JSON.parse(execFileSync(args[1], ['-m', 'agent.tools.synthetic_e
 }));
 assert.equal(payload.synthetic, true);
 const vite = await createServer({ root, configFile: false, logLevel: 'error',
+  plugins: [privateVisualAssetsPlugin('test', root)],
+  optimizeDeps: { noDiscovery: true, include: [], entries: [] },
   server: { middlewareMode: true, watch: null, ws: false }, appType: 'custom' });
 try {
   const { isSupportedSnapshot } = await vite.ssrLoadModule('/src/snapshotValidation.ts');

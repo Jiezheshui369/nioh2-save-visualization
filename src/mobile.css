@@ -1,4 +1,4 @@
-/* Figma C2ZR4s4ksIkNmTLXWnsHtG, frames 02–08. Real OS chrome replaces mock status bars. */
+/* Figma DESIGN_FILE_WITHHELD, frames 02–08. Real OS chrome replaces mock status bars. */
 .nm-shell { --nm-border: #232927; position: fixed; inset: 0; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); color: var(--paper); background: var(--ink); font-family: Inter, system-ui, "Microsoft YaHei", sans-serif; font-size: 13px; line-height: 1.4; }
 .nm-shell * { box-sizing: border-box; }
 .nm-shell [hidden] { display: none !important; }
@@ -72,7 +72,7 @@
 .nm-badge, .nm-item-name .nm-badge { display: inline-block; font-size: 10px; line-height: 1.5; padding: 1px 7px; background: var(--vermillion); color: var(--paper); border-radius: 8px; white-space: nowrap; margin-left: 6px; }
 .nm-warehouse { padding: 10px 20px; display: grid; gap: 10px; }
 .nm-warehouse h2 { margin: 2px 0; }
-.nm-warehouse > input { width: 100%; min-width: 0; font-size: 13px; }
+.nm-warehouse input { width: 100%; min-width: 0; font-size: 13px; }
 .nm-two-buttons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
 .nm-filter-bar { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
 .nm-filter-bar button { font-size: 12px; padding: 6px 3px; overflow-wrap: anywhere; }
@@ -106,3 +106,27 @@
 .nm-legacy-builds { padding: 16px; }
 .nm-legacy-builds .page-stack { gap: 16px; }
 @media (max-width: 360px) { .nm-resources { gap: 6px; } .nm-resources strong { font-size: 13px; } .nm-resources > div { padding: 8px; gap: 6px; } .nm-bottom-nav { padding-left: 12px; padding-right: 12px; } }
+
+/* Known text remains usable when optional private art fails. */
+.nm-icon-text { max-width: 100%; overflow-wrap: anywhere; text-align: center; line-height: 1.2; }
+.nm-control-text { font-size: 10px; line-height: 14px; white-space: normal; }
+.nm-shell:not(.nd-shell) .nm-character-head.nm-neutral-head { min-height: 124px; display: block; padding: 18px 20px; }
+.nm-shell:not(.nd-shell) .nm-neutral-head .nm-character-title-line { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+.nm-shell:not(.nd-shell) .nm-neutral-head h1 { font-size: 18px; line-height: 27px; }
+.nm-shell:not(.nd-shell) .nm-neutral-head .nm-level { display: flex; align-items: baseline; gap: 8px; min-width: 0; max-width: 100%; padding: 0; border: 0; background: none; text-align: left; }
+.nm-shell:not(.nd-shell) .nm-neutral-head .nm-level span { font-size: 14px; }
+.nm-shell:not(.nd-shell) .nm-neutral-head .nm-level strong { font-size: 22px; line-height: 1.3; overflow-wrap: anywhere; }
+
+/* Save Asset account/connection hierarchy; retain the approved palette and type. */
+.nm-shell .native-account { margin-top: 0; }
+.nm-shell .native-account > h2 { font-size: 18px; line-height: 1.4; }
+.nm-shell .native-account > p[role="status"] { margin: 8px 0 12px; font-weight: 700; }
+.asset-connection-unavailable { border-left: 3px solid var(--gold); padding: 10px 12px; margin: 12px 0; background: var(--charcoal); }
+.asset-connection-unavailable strong { display: block; color: var(--gold); }
+.asset-connection-unavailable p { margin-top: 6px !important; line-height: 1.6; }
+.nm-shell .native-account button { margin: 4px 8px 0 0; }
+.asset-legacy-options { margin: 16px 0; padding: 12px; border: 1px solid var(--nm-border); }
+.asset-legacy-options > summary { min-height: 44px; cursor: pointer; font-weight: 700; }
+.asset-legacy-options > p { color: var(--mist); margin: 8px 0 12px !important; line-height: 1.6; }
+.asset-legacy-options:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+.asset-empty-archive p { line-height: 1.6; }

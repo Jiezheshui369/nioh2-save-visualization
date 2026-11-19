@@ -10,6 +10,27 @@ beforeEach(() => { vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(fix
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('desktop save import', () => {
+  it('keeps a local import successful when its integer contract is not remotely publishable', async () => {
+    const value = { ...fixture, localPublication: { version: 1, status: 'ready-local', publicationVersion: 1,
+      snapshotId: fixture.snapshotId, revision: 'a'.repeat(64), preparedAtUtc: '2001-01-01T00:00:00Z',
+      remotePublication: { status: 'not-ready', reason: 'UNSAFE_INTEGER' } } };
+    vi.mocked(fetch).mockResolvedValue(response(value) as unknown as Response);
+    const save = vi.fn().mockResolvedValue(undefined);
+    render(<DesktopImport onSnapshot={save} />); select(); await act(async () => {});
+    expect(save).toHaveBeenCalledOnce(); expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('本地已解析并保存规范快照');
+    expect(screen.getByRole('status')).toHaveTextContent('暂不可远程发布');
+    expect(screen.getByRole('status')).not.toHaveTextContent('已准备本机同步记录');
+  });
+  it('accepts a drop anywhere in the owned application window and shows only local completion', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    render(<DesktopImport onSnapshot={save} />);
+    fireEvent.drop(window, { dataTransfer: { files: [file], types: ['Files'] } });
+    await act(async () => {});
+    expect(save).toHaveBeenCalledOnce();
+    expect(screen.getByRole('status')).toHaveTextContent('尚未发送到手机');
+    expect(screen.getByRole('status')).toHaveTextContent('未返回同步发布记录');
+  });
   it.each([
     new File(['{}'], 'archive.json'),
     new File(['small'], 'SAVEDATA.BIN'),

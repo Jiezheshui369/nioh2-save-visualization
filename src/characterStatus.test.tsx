@@ -104,7 +104,8 @@ describe("screenshot panel observations", () => {
     fireEvent.change(screen.getByLabelText("效果分类"), { target: { value: "其他" } });
     expect(screen.getByRole("status")).toHaveTextContent("显示 0 条效果");
     fireEvent.change(screen.getByLabelText("搜索效果"), { target: { value: "自动" } });
-    expect(screen.getByText("已生效")).toBeVisible();
+    expect(screen.getByText("无数值记录")).toBeVisible();
+    expect(screen.queryByText("已生效")).toBeNull();
     expect(screen.queryByText("+100")).not.toBeInTheDocument();
   });
   it("does not display observations attached to another snapshot", () => {

@@ -61,6 +61,19 @@ export function createSavedBuildShareCardBlob(build: SavedBuild): Promise<Blob> 
   return createShareCardBlobFromData(buildSavedBuildShareCardData(build));
 }
 
+
+function shareCardFont(size:number,legacy:string):string {
+  const status=typeof window==='undefined'?undefined:window.__niohTypography?.status;
+  if(status==='loading'||status==='font-error')throw new Error('原字形资源尚未加载，无法生成配装卡片。');
+  return status==='ready'?`normal ${size}px "SaveAssetG1NPixel"`:legacy;
+}
+/** Maximum width scales both axes uniformly, never Canvas's horizontal-only fit. */
+function drawCardText(context:CanvasRenderingContext2D,value:string,x:number,y:number,width?:number) {
+  if(typeof window==='undefined'||window.__niohTypography?.status!=='ready'){context.fillText(value,x,y,width);return;}
+  const scale=width===undefined?1:Math.min(1,width/Math.max(1,context.measureText(value).width));
+  context.save();context.translate(x,y);context.scale(scale,scale);context.fillText(value,0,0);context.restore();
+}
+
 /** Ellipsis is measured in the active font, not a guessed character count. */
 export function fitShareText(context: Pick<CanvasRenderingContext2D, 'measureText'>, value: string, width: number): string {
   if (context.measureText(value).width <= width) return value;
@@ -94,58 +107,58 @@ export function createShareCardBlobFromData(data: ShareCardData): Promise<Blob> 
   context.lineWidth = 2;
   context.strokeRect(48, 48, 984, canvas.height - 96);
   context.fillStyle = "#b73322";
-  context.font = '700 36px Georgia, serif';
+  context.font = shareCardFont(36, '700 36px Georgia, serif');
   context.textAlign = "center";
-  context.fillText("Nioh", 116, 130);
+  drawCardText(context, "Nioh", 116, 130);
 
   context.textAlign = "left";
   context.fillStyle = "#bda263";
-  context.font = '24px "Microsoft YaHei", sans-serif';
-  context.fillText("Nioh 2 · 随身配装档案", 184, 91);
+  context.font = shareCardFont(24, '24px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "Nioh 2 · 随身配装档案", 184, 91);
   context.fillStyle = "#eee8d8";
-  context.font = '600 58px "Microsoft YaHei", sans-serif';
-  context.fillText(fitShareText(context, data.title, 580), 184, 151);
+  context.font = shareCardFont(58, '600 58px "Microsoft YaHei", sans-serif');
+  drawCardText(context, fitShareText(context, data.title, 580), 184, 151);
   context.textAlign = "right";
   context.fillStyle = "#b73322";
-  context.font = '700 72px "Microsoft YaHei", sans-serif';
-  context.fillText(String(data.level), 986, 142, 190);
+  context.font = shareCardFont(72, '700 72px "Microsoft YaHei", sans-serif');
+  drawCardText(context, String(data.level), 986, 142, 190);
   context.fillStyle = "#8d928e";
-  context.font = '20px "Microsoft YaHei", sans-serif';
-  context.fillText("等级", 986, 78);
+  context.font = shareCardFont(20, '20px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "等级", 986, 78);
 
   context.textAlign = "left";
   context.fillStyle = "#8d928e";
-  context.font = '20px "Microsoft YaHei", sans-serif';
-  context.fillText("八项能力", 72, 222);
+  context.font = shareCardFont(20, '20px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "八项能力", 72, 222);
   data.attributes.forEach((attribute, index) => {
     const x = 72 + index * 117;
     context.fillStyle = "#161918";
     context.fillRect(x, 244, 96, 92);
     context.fillStyle = "#bda263";
-    context.font = '20px "Microsoft YaHei", sans-serif';
-    context.fillText(attribute.name, x + 14, 275);
+    context.font = shareCardFont(20, '20px "Microsoft YaHei", sans-serif');
+    drawCardText(context, attribute.name, x + 14, 275);
     context.fillStyle = "#eee8d8";
-    context.font = '600 29px "Microsoft YaHei", sans-serif';
-    context.fillText(String(attribute.value), x + 14, 316, 72);
+    context.font = shareCardFont(29, '600 29px "Microsoft YaHei", sans-serif');
+    drawCardText(context, String(attribute.value), x + 14, 316, 72);
   });
 
   context.fillStyle = "#8d928e";
-  context.font = '20px "Microsoft YaHei", sans-serif';
-  context.fillText("装备构成 · 件数不代表套装触发档位", 72, 390);
+  context.font = shareCardFont(20, '20px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "装备构成 · 件数不代表套装触发档位", 72, 390);
   for (const [index, grace] of data.graces.slice(0, 4).entries()) {
     const label = `${grace.name}  ${grace.count} 件`;
     const graceX = 72 + index % 2 * 474;
     const graceY = 408 + Math.floor(index / 2) * 60;
-    context.font = '22px "Microsoft YaHei", sans-serif';
+    context.font = shareCardFont(22, '22px "Microsoft YaHei", sans-serif');
     context.strokeStyle = "#594b31";
     context.strokeRect(graceX, graceY, 462, 48);
     context.fillStyle = "#d5c395";
-    context.fillText(fitShareText(context, label, 426), graceX + 18, graceY + 32);
+    drawCardText(context, fitShareText(context, label, 426), graceX + 18, graceY + 32);
   }
 
   context.fillStyle = "#8d928e";
-  context.font = '20px "Microsoft YaHei", sans-serif';
-  context.fillText("装备摘要 · 完整词条请分享文字资料", 72, 560);
+  context.font = shareCardFont(20, '20px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "装备摘要 · 完整词条请分享文字资料", 72, 560);
   data.equipment.forEach((item, index) => {
     const y = 580 + index * 61;
     context.strokeStyle = "#262b29";
@@ -154,27 +167,27 @@ export function createShareCardBlobFromData(data: ShareCardData): Promise<Blob> 
     context.lineTo(1008, y + 48);
     context.stroke();
     context.fillStyle = "#bda263";
-    context.font = '18px "Microsoft YaHei", sans-serif';
-    context.fillText(fitShareText(context, item.slot, 94), 72, y + 30);
+    context.font = shareCardFont(18, '18px "Microsoft YaHei", sans-serif');
+    drawCardText(context, fitShareText(context, item.slot, 94), 72, y + 30);
     context.fillStyle = "#eee8d8";
-    context.font = '500 23px "Microsoft YaHei", sans-serif';
-    context.fillText(fitShareText(context, item.name, 438), 182, y + 30);
+    context.font = shareCardFont(23, '500 23px "Microsoft YaHei", sans-serif');
+    drawCardText(context, fitShareText(context, item.name, 438), 182, y + 30);
     context.textAlign = "right";
     context.fillStyle = "#b73322";
-    context.fillText(`+${item.plus}`, 1008, y + 30, 98);
+    drawCardText(context, `+${item.plus}`, 1008, y + 30, 98);
     context.fillStyle = "#777e79";
-    context.font = '17px "Microsoft YaHei", sans-serif';
-    context.fillText(fitShareText(context, item.grace, 250), 900, y + 30);
+    context.font = shareCardFont(17, '17px "Microsoft YaHei", sans-serif');
+    drawCardText(context, fitShareText(context, item.grace, 250), 900, y + 30);
     context.textAlign = "left";
   });
 
   context.fillStyle = "#777e79";
-  context.font = '18px "Microsoft YaHei", sans-serif';
-  context.fillText("Nioh 存档伴侣 · 佩戴绘卷尚未识别 · 不含存档文件与哈希", 72, canvas.height - 66);
+  context.font = shareCardFont(18, '18px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "存档资产 Save Asset · 佩戴绘卷尚未识别 · 不含存档文件与哈希", 72, canvas.height - 66);
   context.textAlign = "right";
   context.fillStyle = "#b73322";
-  context.font = '700 24px "Microsoft YaHei", sans-serif';
-  context.fillText("配装摘要", 1008, canvas.height - 66);
+  context.font = shareCardFont(24, '700 24px "Microsoft YaHei", sans-serif');
+  drawCardText(context, "配装摘要", 1008, canvas.height - 66);
 
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("构筑卡生成失败。")), "image/png"));
 }

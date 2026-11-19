@@ -1,0 +1,25 @@
+#root.g1n-font-loading { visibility:hidden; }
+#root.g1n-all-font, #root.g1n-all-font * { font-family:'SaveAssetG1NPixel',serif !important; font-synthesis:none !important; -webkit-text-fill-color:transparent !important; text-shadow:none !important; }
+/* Browser-owned popup options/file buttons use the same original-alpha derivative. */
+#root.g1n-all-font option, #root.g1n-all-font optgroup { -webkit-text-fill-color:currentColor !important; font-family:'SaveAssetG1NPixel' !important; }
+#root.g1n-all-font input::file-selector-button { font-family:'SaveAssetG1NPixel' !important; font-synthesis:none; -webkit-text-fill-color:currentColor !important; }
+#root.g1n-all-font :is(input,textarea) { caret-color:#fff2d4; }
+#root.g1n-all-font :is(input,textarea)::selection { -webkit-text-fill-color:transparent; background:rgba(239,129,94,.35); }
+.g1n-content-text { position:absolute !important; z-index:1; pointer-events:none !important; display:block !important; margin:0 !important; padding:0 !important; border:0 !important; background:none !important; max-width:none !important; min-width:0 !important; min-height:0 !important; }
+.g1n-font-accessible-status { position:fixed; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; pointer-events:none; }
+.g1n-font-accessible-status.g1n-font-error { clip-path:none; width:auto; height:auto; top:8px; left:8px; z-index:2147483001; padding:8px; background:#302429; color:#fff2d4; }
+/* Long attribute names are one Figma line; the pixel renderer fits proportionally. */
+#root.g1n-all-font .nd-detail-values dt { white-space:nowrap; }
+#root.g1n-all-font :is(.nm-bottom-nav button,.nd-nav button,.nm-filter-bar button,.nm-two-buttons > button,.nm-filter-grid button,.nm-detail-actions button,.nm-more-menu button,.nm-primary,.nm-back,.nm-item-name,.nm-item-meta) { white-space:nowrap; }
+#root.g1n-all-font .nd-sidebar-foot p { line-height:12px; height:24px; }
+#root.g1n-all-font summary { list-style:none; }
+#root.g1n-all-font summary::-webkit-details-marker { display:none; }
+#root.g1n-all-font summary::before { content:''; display:inline-block; width:0; height:0; margin-right:7px; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:6px solid currentColor; }
+#root.g1n-all-font details[open] > summary::before { transform:rotate(90deg); }
+#root.g1n-all-font input[type=search] { background-image:url('./assets/figma/search.svg'); background-repeat:no-repeat; background-position:10px center; background-size:16px 16px; padding-left:34px; }
+#root.g1n-all-font .nd-shell .nm-equipment-row { height:76px; min-height:76px; padding:0; gap:14px; align-items:center; }
+#root.g1n-all-font .nd-shell .nm-equipment-row .nm-icon-slot { width:32px; height:32px; flex:0 0 32px; }
+#root.g1n-all-font .nd-shell .nm-equipment-row .nm-icon-slot img { width:32px; height:32px; object-fit:contain; }
+#root.g1n-all-font .nd-shell .nm-equipment-row .nm-item-copy { display:flex; flex-direction:column; justify-content:center; max-width:476px; gap:6px; }
+#root.g1n-all-font .nm-preview-source-copy p { font-size:12.8px; }
+#root.g1n-all-font .nm-shell:not(.nd-shell) .build-library-intro > p:last-child { font-size:12.7px; }

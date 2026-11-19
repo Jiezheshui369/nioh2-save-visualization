@@ -1,5 +1,12 @@
 # Third-party notices
 
+Native account login uses **Auth0.Android** 3.10.0 (MIT) on Android and
+**Authlib** 1.9.1 (BSD 3-Clause) in the Windows native process. These libraries
+are not embedded in the web frontend. Preserve their license files and
+distribution metadata when producing native release packages.
+Sources and licenses: https://github.com/auth0/Auth0.Android/tree/3.10.0 and
+https://github.com/authlib/authlib/tree/v1.9.1
+
 The files `agent/data/items.json` and `agent/data/effects.json` are derived from
 the **Nioh 2 Save Editor** project by alfizari and are redistributed under the
 Apache License 2.0. The complete license text is included at
@@ -40,3 +47,13 @@ release; its cached wheel was built locally from the PyPI 0.1.0 distribution.
 Sources: https://github.com/r0x0r/pywebview and https://github.com/pythonnet/pythonnet
 Microsoft WebView2 Runtime is a separately installed Microsoft component;
 it is not downloaded or installed by the application.
+
+
+The iOS native account adapter uses **Auth0.swift 3.1.0** (MIT), with
+**JWTDecode.swift 4.0.0** and **SimpleKeychain 1.3.0** (MIT). The app does not
+instantiate CredentialsManager or use SimpleKeychain to persist account tokens.
+Versions and revisions are pinned in the Xcode workspace Package.resolved.
+Sources/licenses: https://github.com/auth0/Auth0.swift/tree/3.1.0,
+https://github.com/auth0/JWTDecode.swift/tree/4.0.0,
+https://github.com/auth0/SimpleKeychain/tree/1.3.0.
+iOS HPKE and ES256 use Apple's system CryptoKit, not WebView cryptography.

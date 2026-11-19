@@ -1,0 +1,10 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+const f = vi.hoisted(() => ({ platform:'ios', native:true, auth:{status:vi.fn(),login:vi.fn(),cancel:vi.fn(),logout:vi.fn()}, remote:{status:vi.fn(),requestJoin:vi.fn(),refresh:vi.fn(),readCache:vi.fn()} }));
+vi.mock('@capacitor/core', () => ({ Capacitor:{getPlatform:()=>f.platform,isNativePlatform:()=>f.native},registerPlugin:(name:string)=>name==='SaveAssetAuth'?f.auth:f.remote }));
+import { nativeAccount } from './nativeAccount';
+import { remoteMvp } from './remoteMvp';
+beforeEach(()=>{vi.clearAllMocks();f.platform='ios';f.native=true;f.auth.status.mockResolvedValue({state:'signed-out'});f.remote.status.mockResolvedValue({state:'unconfigured',configured:false});});
+it('routes iOS auth to native and projects only safe status',async()=>{f.auth.login.mockResolvedValue({state:'signing-in',browserPending:true,accessToken:'synthetic-private'});expect(await nativeAccount('login','ios')).toEqual({state:'signing-in',browserPending:true});expect(f.auth.login).toHaveBeenCalledOnce();});
+it('rejects wrong platform or non-native callers',async()=>{f.platform='android';await expect(nativeAccount('login','ios')).rejects.toThrow();await expect(remoteMvp('refresh','ios')).rejects.toThrow();f.platform='ios';f.native=false;await expect(nativeAccount('status','ios')).rejects.toThrow();await expect(remoteMvp('status','ios')).rejects.toThrow();expect(f.auth.status).not.toHaveBeenCalled();expect(f.remote.status).not.toHaveBeenCalled();});
+it('supports only phone actions on iOS',async()=>{await remoteMvp('status','ios');expect(f.remote.status).toHaveBeenCalledOnce();for(const action of ['initialize','approve','reject','pending'] as const) await expect(remoteMvp(action,'ios')).rejects.toThrow();});
+it('retains Android routing',async()=>{f.platform='android';await nativeAccount('status','android');await remoteMvp('status','android');expect(f.auth.status).toHaveBeenCalledOnce();expect(f.remote.status).toHaveBeenCalledOnce();});

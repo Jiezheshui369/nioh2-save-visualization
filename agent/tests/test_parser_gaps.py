@@ -7,18 +7,18 @@ class GapAnalysisTests(unittest.TestCase):
         record = {'id': 'AB', 'type': 'Soul Core', 'nameZh': '测试',
                   'effects': ['Numeric', 'Grade', 'Flag?', 'Missing', 'Unexpected'],
                   'effectsZh': ['数值', '等级', '待定', None, '意外'],
-                  'effectIds': ['A', 'B', 'C', 'D', 'E'],
+                  'effectIds': ['A001', 'B001', 'C001', 'D001', 'E001'],
                   'effectMagnitudes': ['5%', None, None, None, None]}
         report = analyze({'equipmentInventory': [record]}, [
-            {'id': 'A', 'CAP': '.1'}, {'id': 'B', 'CAP': 'A+'},
-            {'id': 'C', 'CAP': ''}, {'id': 'E', 'CAP': '10'}])
+            {'id': 'A001', 'CAP': '.1'}, {'id': 'B001', 'CAP': 'A+'},
+            {'id': 'C001', 'CAP': ''}, {'id': 'E001', 'CAP': '10'}])
         self.assertEqual(report['effectOccurrences'], 5)
         self.assertEqual(sum(report['valueCoverage'].values()), 5)
         self.assertEqual(report['valueCoverage']['nonNumericCatalogue'], 1)
         self.assertEqual(report['valueCoverage']['emptyCatalogueCap'], 1)
         self.assertEqual(report['valueCoverage']['noCatalogueEntry'], 1)
         self.assertEqual(report['valueCoverage']['numericCatalogueButMissingValue'], 1)
-        self.assertEqual(report['missingEffectNames'][0]['id'], 'D')
+        self.assertEqual(report['missingEffectNames'][0]['id'], 'D001')
 
     def test_old_snapshots_with_missing_parallel_arrays_are_not_assumed_decoded(self):
         result = analyze({'scrolls': [{'effects': ['Unknown'], 'id': '12'}]}, [])

@@ -1,4 +1,7 @@
+import type { ResearchStatus } from "./researchStatus";
 import type { CharacterStatus } from "./characterStatus";
+import type { Titles } from './titles';
+import type { Skills } from './skills';
 
 export interface EffectValueDetail {
   rawValue: number;
@@ -62,6 +65,19 @@ export interface ScrollRecord {
   effectValueDetails?: EffectValueDetail[];
 }
 
+export interface ExperimentalScrollSelection {
+  formatVersion: 1;
+  status: "unknown" | "candidate";
+  reason: string | null;
+  selectorOffset: "0x294070";
+  encodingHypothesis: "uint32-le-table-index";
+  rawSelector: number | null;
+  candidateRecord: { recordIndex: number; offset: string; id: string } | null;
+  selectionVerified: false;
+  generalizationVerified: false;
+  evidenceScope: string;
+}
+
 export interface SaveSnapshot {
   schemaVersion: string;
   parserVersion?: string;
@@ -70,6 +86,7 @@ export interface SaveSnapshot {
   snapshotId: string;
   researchLabel?: string;
   sourceLastWriteLocal: string;
+  localPublication?: LocalPublicationReceipt;
   safety: {
     sourceOpenedReadOnly: boolean;
     parsedFromCopy: boolean;
@@ -90,6 +107,9 @@ export interface SaveSnapshot {
   };
   currentLoadout: LoadoutItem[];
   characterStatus?: CharacterStatus;
+  researchStatus?: ResearchStatus;
+  titles?: Titles;
+  skills?: Skills;
   currentLoadoutName?: string | null;
   savedEquipmentPresetName?: string | null;
   emptyLoadoutSlots?: number[];
@@ -97,6 +117,7 @@ export interface SaveSnapshot {
   equipmentInventory?: EquipmentItem[];
   inventoryItems?: InventoryItem[];
   scrolls?: ScrollRecord[];
+  experimentalScrollSelection?: ExperimentalScrollSelection;
   inventorySummary: {
     equipmentRecords: number;
     equipmentUnknownIds: number;
@@ -181,4 +202,14 @@ export interface DeviceArchiveInfo {
   sourceLastWriteLocal: string;
   buildCount: number;
   source: "asset-package" | "legacy-snapshot" | "computer-sync";
+}
+
+export interface LocalPublicationReceipt {
+  version: 1;
+  status: 'ready-local';
+  publicationVersion: number;
+  snapshotId: string;
+  revision: string;
+  preparedAtUtc: string;
+  remotePublication?: { status: 'not-ready'; reason: 'UNSAFE_INTEGER' };
 }

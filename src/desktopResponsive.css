@@ -1,0 +1,32 @@
+/* Responsive desktop layout from verified Figma; mobile selectors are untouched. */
+#root .nm-shell.nd-shell { display:flex; flex-direction:row; height:100dvh; min-height:0; overflow:hidden; }
+#root .nm-shell.nd-shell .nd-sidebar { display:flex; flex-direction:column; flex:0 0 196px; width:196px; min-width:196px; height:100%; padding:28px 20px 24px; gap:0; border-right:1px solid var(--nm-border); }
+#root .nm-shell.nd-shell .nd-brand { display:block; padding:4px 0 34px; }
+#root .nm-shell.nd-shell .nd-nav { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; width:100%; }
+#root .nm-shell.nd-shell .nd-nav button { justify-content:flex-start; gap:20px; padding:10px 12px; }
+#root .nm-shell.nd-shell .nd-nav small { display:block; }
+#root .nm-shell.nd-shell .nd-sidebar-foot { display:grid; margin-top:auto; padding:30px 0 0; }
+#root .nm-shell.nd-shell .nd-main { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; height:100%; overflow:hidden; }
+#root .nm-shell.nd-shell .nd-toolbar { flex:0 0 auto; height:108px; min-height:108px; padding:16px 24px; flex-wrap:nowrap; }
+#root .nm-shell.nd-shell .nd-toolbar > div:first-child { flex:1; min-width:0; height:76px; }
+#root .nm-shell.nd-shell .nm-scroll { flex:1; min-height:0; min-width:0; width:100%; padding:24px; overflow-y:auto; overflow-x:hidden; }
+#root .nm-shell.nd-shell .nm-scroll > * { width:100%; max-width:1160px; margin-left:auto; margin-right:auto; }
+#root .nm-shell.nd-shell .nm-scroll > [hidden] { display:none; }
+#root .nm-shell.nd-shell .nd-character-summary { display:flex; flex-wrap:wrap; height:auto; min-height:104px; padding:13px 20px; gap:12px 24px; }
+#root .nm-shell.nd-shell .nd-character-summary > div { display:flex; flex:1 1 220px; min-width:220px; min-height:0; padding:0; }
+#root .nm-shell.nd-shell .nd-character-summary > .nd-summary-level { flex:1 1 180px; min-width:180px; }
+#root .nm-shell.nd-shell .nd-character-summary > div > div { flex-direction:column; gap:4px; }
+#root .nm-shell.nd-shell .nd-character-summary > .nd-summary-level > div { flex-direction:row; gap:10px; }
+#root .nm-shell.nd-shell .nd-character-details { height:auto; min-height:0; padding:24px; display:block; }
+#root .nm-shell.nd-shell .nd-details-heading { margin-bottom:25px; }
+#root .nm-shell.nd-shell .nd-details-scroll { height:auto; max-height:none; min-height:0; overflow:visible; padding:0; overscroll-behavior:auto; }
+#root .nm-shell.nd-shell :is(.nd-detail-values,.nm-loadout-list,.nm-warehouse-list) { grid-template-columns:minmax(0,1fr); column-gap:24px; }
+#root .nm-shell.nd-shell :is(.nm-loadout-list,.nm-warehouse-list) { row-gap:8px; }
+@media(min-width:1320px) {
+ #root .nm-shell.nd-shell :is(.nd-detail-values,.nm-loadout-list,.nm-warehouse-list) { grid-template-columns:repeat(2,minmax(500px,1fr)); }
+}
+@media(max-width:955px) {
+ #root .nm-shell.nd-shell .nd-toolbar { height:auto; min-height:172px; flex-direction:column; align-items:stretch; justify-content:flex-start; }
+ #root .nm-shell.nd-shell .nd-toolbar > div:first-child { flex:none; height:76px; }
+ #root .nm-shell.nd-shell .nd-toolbar > div:last-child { justify-content:flex-start; }
+}

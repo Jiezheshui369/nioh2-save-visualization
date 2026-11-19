@@ -1,0 +1,21 @@
+// Console-only synthetic demonstration. No network, persistent keys or enrollment.
+import assert from 'node:assert/strict';
+import { enrollmentFixture } from '../test/enrollment.fixture.mjs';
+import { verificationPhrase } from '../src/enrollment.js';
+const f=await enrollmentFixture();
+console.log('SYNTHETIC RAM-ONLY enrollment demo');
+console.log((await f.service.state(f.pcAccount)).state);
+const first=await f.service.beginFirstPc(f.pcAccount,f.pc.candidate);
+console.log((await f.service.state(f.pcAccount)).state);
+await f.service.finishFirstPc(f.pcAccount,first.id,await f.sign(first,'first-pc'));
+console.log((await f.service.state(f.pcAccount)).state);
+const request=await f.service.beginPhoneJoin(f.phoneAccount,f.phone.candidate);
+console.log(request.state);
+const pending=await f.service.provePhoneJoin(f.phoneAccount,request.id,await f.sign(request,'phone-proof',f.phone));
+assert.equal(pending.phrase,await verificationPhrase(request));
+console.log(pending.state,'compare transcript fingerprint:',pending.phrase);
+console.log((await f.approve(request)).state);
+const revoke=await f.service.beginDeviceRevoke(f.pcAccount,f.phone.candidate.id);
+console.log((await f.service.revokeDevice(f.pcAccount,revoke.id,await f.sign(revoke,'device-revoke'))).state);
+assert.equal((await f.store.get('device:phone-1')).state,'revoked');
+console.log('DONE: synthetic phone revoked; no persistent storage used');

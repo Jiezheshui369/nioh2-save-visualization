@@ -1,0 +1,16 @@
+/* Only the Windows desktop shell owns this boundary. Keep readable DOM/ARIA. */
+.df-shell[data-desktop-text-selection="ordinary-disabled"],
+.df-shell[data-desktop-text-selection="ordinary-disabled"] * {
+  -webkit-user-select:none !important;
+  user-select:none !important;
+}
+.df-shell[data-desktop-text-selection="ordinary-disabled"] :is(input,textarea,[contenteditable=""],[contenteditable="true" i],[contenteditable="plaintext-only" i]),
+.df-shell[data-desktop-text-selection="ordinary-disabled"] :is([contenteditable=""],[contenteditable="true" i],[contenteditable="plaintext-only" i]) * {
+  -webkit-user-select:text !important;
+  user-select:text !important;
+}
+.df-shell[data-desktop-text-selection="ordinary-disabled"] [contenteditable="false" i],
+.df-shell[data-desktop-text-selection="ordinary-disabled"] [contenteditable="false" i] * {
+  -webkit-user-select:none !important;
+  user-select:none !important;
+}

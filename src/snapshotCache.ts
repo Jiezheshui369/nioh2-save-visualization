@@ -32,6 +32,9 @@ function openDatabase(): Promise<IDBDatabase | null> {
   });
 }
 
+// Remote records use their own scoped keys in this store; never replace legacy latest/index.
+export { openDatabase as openSnapshotCacheDatabase };
+
 function snapshotKey(snapshotId: string): string {
   return `${SNAPSHOT_KEY_PREFIX}${snapshotId}`;
 }
